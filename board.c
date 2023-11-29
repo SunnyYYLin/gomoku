@@ -1,28 +1,32 @@
 #include "board.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
-#include "symbol.h"
-#include "position.h"
 
-// External variables
-extern int board[SIZE][SIZE];
-extern int turn;
-extern Position pos_new;
+extern Chess newChess;
 
-// Initialize the board with all positions empty
-void init_board() {
+ChessBoard empty_board() {
+    ChessBoard board;
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
-            board[i][j] = EMPTY;
+            board.board[i][j] = empty_chess();
         }
     }
+    return board;
 }
 
-// Display the current state of the board
-void print_board() {
-    printf("Round %d\n", turn);
+// ChessBoard board_clear_visit (ChessBoard board){
+//     for (int i = 0; i < SIZE; i++) {
+//         for (int j = 0; j < SIZE; j++) {
+//             board.board[i][j].has_been_visited = 0;
+//         }
+//     }
+//     return board;
+// }
+
+// Display the current state of the board and Trun NEW to DEFAULT
+void print_board(ChessBoard board) {
+    printf("Round %d\n", newChess.turn);
 
     // Print column headers
     printf("  ");
@@ -36,7 +40,7 @@ void print_board() {
         printf("%2d", i + 1); // Print row number
         for (int j = 0; j < SIZE; j++) {
             // Print the appropriate character based on the board's state
-            switch (board[i][j]) {
+            switch (board.board[i][j].color) {
                 case EMPTY:
                     // Special characters for the board's edges and corners
                     if (i == 0 && j == 0) printf("┌");
@@ -50,16 +54,20 @@ void print_board() {
                     else printf("┼");
                     break;
                 case BLACK:
-                    printf("●");
-                    break;
-                case BLACK_NEW:
-                    printf("▲");
+                    if (board.board[i][j].turn == newChess.turn) {
+                        printf("▲");
+                    }
+                    else {
+                        printf("●");
+                    }
                     break;
                 case WHITE:
-                    printf("○");
-                    break;
-                case WHITE_NEW:
-                    printf("△");
+                    if (board.board[i][j].turn == newChess.turn) {
+                        printf("△");
+                    }
+                    else {
+                        printf("○");
+                    }
                     break;
             }
         }
@@ -67,41 +75,7 @@ void print_board() {
     }
 }
 
-// Put a chess on the board 
-Position drop_board(int color) {
-    int x, y;
-    char colChar;
-
-    // Ask for the position of the chess
-    printf("Round %d is %s's. Drop on the board (example: B4):\n", turn + 1, colorText[color + 1]);
-    
-    // Read the input
-    if (scanf(" %c%d", &colChar, &x) != 2) {
-        printf("Invalid input format! Please use the format like 'B4'.\n");
-    }
-
-    y = toupper(colChar) - 'A';
-    x = x - 1; // Convert the position to the index of the array
-
-    return pos_make(x, y);
-}
-
-// Update the board after each move
-void update_board(ChessColor color) {
-    if (turn != 0) {
-        board[pos_new.x][pos_new.y] = colorNew[color + 1];
-        print_board();
-        board[pos_new.x][pos_new.y] = color;
-    } 
-    else {
-        print_board();
-    }
-
-    // Keep prompting the player until a valid move is made
-    do {
-        pos_new = drop_board(color);
-    }
-    while (!is_valid(pos_new));
-
-    system("cls"); // Clear the console
+ChessBoard update_board(ChessBoard board, Chess newChess) {
+    board.board[newChess.pos.x][newChess.pos.y] = newChess;
+    return board;
 }

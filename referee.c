@@ -1,37 +1,36 @@
 #include "referee.h"
 
-#include "symbol.h"
-#include "position.h"
-#include "line.h"
+#include "board.h"
 #include <stdio.h>
 
-// External variables
-extern int board[SIZE][SIZE];
-extern int turn;
-extern Position pos_new;
-
-
-
-int exist_forbbiden(ChessColor color, Shape sum_shape) {
-    if (sum_shape.live_threes >= 2 || sum_shape.fours >= 2 || sum_shape.longs >= 1) {
-        return 1;
+int is_forbbiden(ChessBoard board, Chess newChess, int depth) {
+    if (depth <= 1) {
+        board.board[newChess.pos.x][newChess.pos.y] = newChess;
+    
+        Shape sum_shape = sum_lines(board, newChess);
+        if ((sum_shape.live_threes >= 2 || sum_shape.fours >= 2 || sum_shape.longs >= 1) && newChess.color == BLACK) {
+            return 1;
+        }
+        else if (sum_shape.fives >= 1){
+            return -1;
+        }
+        else {
+            return 0;
+        }
     }
     else {
-        return 0;
+        return !is_empty(board, newChess.pos);
     }
 }
 
-int referee_board(ChessColor color) {
-    Shape sum_shape = sum_lines(color, pos_new);
-
-    if (color == BLACK && exist_forbbiden(color, sum_shape)){
-        printf("Black is forbidden to place here! White wins.\n");
-        return -1;
+void referee_output(int referee, Chess newChess) {
+    if (referee == 0) {
+        printf("It's a draw! Game over.\n");
     }
-    else if (sum_shape.fives >= 1){
-        printf("Game over! %s wins!\n", colorText[color + 1]);
-        return 1;
+    else if (referee == 1) {
+        printf("%s wins! Game over.\n", colorText[newChess.color + 2]);
     }
-
-    return 0;
+    else if (referee == -1) {
+        printf("BLack had a forbbiden move! Game over.\n");
+    }
 }
