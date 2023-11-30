@@ -1,49 +1,328 @@
-#include "symbol.h"
-#include "board.h"
-#include "referee.h"
+#include "include.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 // 声明外部变量
-extern int board[SIZE][SIZE];
-extern Position pos_new;
+// Global variables
+const char* colorText[] = {"White", "Error", "Black"};
+ChessBoard board;
+Chess newChess;
+int referee = 0;
 
-void test_forbidden_moves() {
-    // 测试双三禁手
-    init_board();
-    board[7][6] = BLACK;
-    board[7][7] = BLACK; 
-    board[7][8] = BLACK; 
-    board[6][6] = BLACK;
-    board[8][6] = BLACK;
-    pos_new.x = 7; pos_new.y = 6;
-    printf("Testing Double Three Forbidden Move...\n");
-    printf("Referee result: %d\n\n\n\n", referee_board(BLACK));
-
-    // 测试双四禁手
-    init_board();
-    board[7][7] = BLACK; 
-    board[7][8] = BLACK; 
-    board[7][6] = BLACK; 
-    board[7][5] = BLACK; 
-    board[6][7] = BLACK;
-    board[8][7] = BLACK;
-    board[9][7] = BLACK;
-    pos_new.x = 7; pos_new.y = 7;
-    printf("Testing Double Four Forbidden Move...\n");
-    printf("Referee result: %d\n\n\n\n", referee_board(BLACK));
-
-    // 测试长连禁手
-    init_board();
-    for (int i = 5; i <= 10; i++) {
-        board[7][i] = BLACK;
-    }
-    pos_new.x = 7; pos_new.y = 10;
-    printf("Testing Long Line Forbidden Move...\n");
-    printf("Referee result: %d\n\n\n\n", referee_board(BLACK));
-}
+void shape_print(Shape shape);
+void open_threes_test1();
+void open_threes_test2();
+void broken_threes_test1();
+void broken_threes_test2();
+void broken_threes_test3();
+void open_fours_test1();
+void open_fours_test2();
+void broken_fours_test1();
+void broken_fours_test2();
+void broken_fours_test3();
+void longs_test1();
+void test1();
+void test2();
+void test3();
 
 int main() {
-    test_forbidden_moves();
+    system("chcp 65001");
+    test4();
     getchar();
+
     return 0;
+}
+
+void shape_print(Shape shape) {
+    printf("fives=%d, longs=%d, open_threes=%d, broken_threes=%d, open_fours=%d, broken_fours=%d\n", shape.fives, shape.longs, shape.open_threes, shape.broken_threes, shape.open_fours, shape.broken_fours);
+}
+
+void open_threes_test1() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+
+    board.board[2][5] = black;
+    board.board[2][6] = black;
+    board.board[1][8] = black;
+    board.board[0][9] = black;
+
+    Chess newChess = {0,BLACK,{2,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void open_threes_test2() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+
+    board.board[7][5] = black;
+    board.board[7][6] = black;
+    board.board[6][8] = black;
+    board.board[8][6] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void broken_threes_test1() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+
+    board.board[7][5] = black;
+    board.board[7][6] = black;
+    board.board[5][9] = black;
+    board.board[8][6] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void broken_threes_test2() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+
+    board.board[7][5] = black;
+    board.board[7][6] = black;
+    board.board[5][9] = black;
+    board.board[8][6] = black;
+    board.board[6][8] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void broken_threes_test3() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+
+    board.board[7][5] = black;
+    board.board[7][8] = black;
+    board.board[5][9] = black;
+    board.board[8][6] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void open_fours_test1() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+
+    board.board[7][5] = black;
+    board.board[7][6] = black;
+    board.board[7][8] = black;
+    board.board[6][8] = black;
+    board.board[5][9] = black;
+    board.board[4][10] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void open_fours_test2() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[7][5] = black;
+    board.board[7][6] = black;
+    board.board[7][8] = black;
+    board.board[6][8] = black;
+    board.board[5][9] = black;
+    board.board[4][10] = black;
+    board.board[7][4] = white;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void broken_fours_test1() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[7][3] = black;
+    board.board[7][4] = black;
+    board.board[7][5] = black;
+    board.board[8][6] = black;
+    board.board[5][9] = black;
+    board.board[4][10] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void broken_fours_test2() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[7][3] = black;
+    board.board[7][4] = black;
+    board.board[7][5] = black;
+    board.board[8][6] = black;
+    board.board[5][9] = black;
+    board.board[4][10] = black;
+    board.board[7][6] = white;
+    board.board[9][5] = white;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void broken_fours_test3() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[7][3] = black;
+    board.board[7][4] = black;
+    board.board[7][6] = black;
+    board.board[7][9] = black;
+    board.board[7][10] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void longs_test1() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[7][3] = black;
+    board.board[7][4] = black;
+    board.board[7][5] = black;
+    board.board[7][6] = black;
+    board.board[7][8] = black;
+    board.board[7][9] = black;
+    board.board[7][10] = white;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+    shape_print(sum_lines(board, newChess));
+}
+
+void fives_test1() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[7][3] = black;
+    board.board[7][4] = black;
+    board.board[7][5] = black;
+    board.board[7][6] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+
+    shape_print(sum_lines(board, newChess));
+}
+
+void test1() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[7][2] = black;
+    board.board[7][3] = black;
+    board.board[7][4] = black;
+    board.board[7][5] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+
+    shape_print(sum_lines(board, newChess));
+}
+
+void test2() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[7][4] = black;
+    board.board[7][5] = black;
+    board.board[7][6] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+
+    shape_print(sum_lines(board, newChess));
+}
+
+void test3() {
+    ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[7][5] = black;
+    board.board[7][6] = black;
+    board.board[7][9] = black;
+    board.board[7][10] = black;
+    board.board[8][7] = black;
+    board.board[9][7] = black;
+    board.board[10][7] = black;
+
+    Chess newChess = {0,BLACK,{7,7}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+
+    shape_print(sum_lines(board, newChess));
+}
+
+void test4() {
+        ChessBoard board = empty_board();
+    Chess black = {-1, BLACK, {7, 7}};
+    Chess white = {-1, WHITE, {7, 7}};
+
+    board.board[0][0] = black;
+    board.board[0][1] = black;
+    board.board[1][2] = black;
+    board.board[2][2] = black;
+
+
+    Chess newChess = {0,BLACK,{0,2}};
+    board = drop_board(board, newChess);
+
+    print_board(board, newChess);
+
+    shape_print(sum_lines(board, newChess));
 }

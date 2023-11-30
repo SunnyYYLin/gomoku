@@ -4,41 +4,39 @@
 #include "board.h"
 
 typedef struct {
-    int live_threes;
-    int fours;
+    int open_threes;
+    int broken_threes;
+    int open_fours;
+    int broken_fours;
     int fives;
     int longs;
 } Shape;
 
 typedef struct {
     int segs[SIZE];
-    int start_open;
-    int end_open;
+    int is_start_open;
+    int is_end_open;
     Shape shape;
 } Line;
 
 
 
 // referee.c
-int is_forbidden(ChessBoard board, Chess chess, int depth);
+int is_forbidden(ChessBoard board, Chess newChess);
+
 void referee_output(int referee, Chess newChess);
 
 // line.c
-int is_in_segs (Line line, int i);
-int is_segs_start (int i);
-int is_segs_end (Line line, int i);
-int is_segs_inside (Line line, int i);
-int num_fives (Line line);
-int num_fours (Line line);
-int num_live_threes (Line line);
-int num_longs (Line line);
-int is_new_seg_start(ChessBoard board, int color, Position pos_at, int is_in_seg, int depth);
-int is_new_seg_continue(ChessBoard board, int color, Position pos_at, int is_in_seg, int depth);
-int is_new_seg_end(ChessBoard board, int color, Position pos_at, int is_in_seg, int depth);
-Shape empty_shape ();
-Line empty_line ();
-Line get_line (ChessBoard board, int color, Position pos_at, Position direction, int depth);
-Line line_shape (Line line, int depth);
-Shape sum_lines (ChessBoard board, Chess chess, int depth);
+Shape empty_shape();
+int fill_segs (ChessBoard board, Position pos_at, int color);
+Line empty_line();
+Line get_line(ChessBoard board, int color, Position pos_at, Position direction);
+Line num_fives_and_longs(Line line);
+Line num_open_fours(Line line);
+Line num_broken_fours(Line line);
+Line num_open_threes(Line line);
+Line num_broken_threes(Line line);
+Line line_shape(Line line);
+Shape sum_lines(ChessBoard board, Chess chess);
 
 # endif

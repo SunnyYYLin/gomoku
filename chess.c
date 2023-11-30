@@ -8,7 +8,7 @@
 extern Chess newChess;
 
 Chess empty_chess() {
-    Chess empty = {0, EMPTY, {0,0}, 0, 0};
+    Chess empty = {-1, EMPTY, {0,0}};
     return empty;
 }
 
@@ -17,7 +17,7 @@ int chess_color(Chess chess) {
 }
 
 Chess make_chess(int color, Position pos) {
-    Chess chess = {0, color, {pos.x, pos.y}, 1};
+    Chess chess = {0, color, {pos.x, pos.y}};
     return chess;
 }
 

@@ -18,7 +18,6 @@ typedef struct {
     int turn;
     int color;
     Position pos;
-    int is_new;
 } Chess;
 
 typedef struct {
@@ -39,8 +38,8 @@ extern const char* colorText[3];
 
 // board.c
 ChessBoard empty_board();
-void print_board(ChessBoard board);
-ChessBoard update_board(ChessBoard board, Chess chess);
+void print_board(ChessBoard board, Chess newChess);
+ChessBoard drop_board(ChessBoard board, Chess chess);
 
 // position.c
 int is_empty(ChessBoard board, Position pos);
@@ -49,7 +48,6 @@ int is_center(Position pos);
 int is_in_board(Position pos);
 int is_on_edge(Position pos);
 int is_on_corner(Position pos);
-int is_available(ChessBoard board, Position pos);
 int is_valid(ChessBoard board, Chess chess);
 int is_valid_silent(ChessBoard board, Chess chess);
 Position rev_direc(Position direction);

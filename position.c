@@ -9,7 +9,7 @@ int is_empty (ChessBoard board, Position pos) {
     int x = pos.x;
     int y = pos.y;
 
-    if (board.board[x][y].color == EMPTY) {
+    if (is_in_board(pos)&&board.board[x][y].color == EMPTY) {
         return 1;
     }
 
@@ -20,7 +20,7 @@ int is_color (ChessBoard board, Position pos, int color) {
     int x = pos.x;
     int y = pos.y;
 
-    if (board.board[x][y].color == color) {
+    if (is_in_board(pos)&&board.board[x][y].color == color) {
         return 1;
     }
 
@@ -65,14 +65,6 @@ int is_on_corner (Position pos) {
     int y = pos.y;
 
     if ((x == 0 || x == SIZE-1) && (y == 0 || y == SIZE-1)) {
-        return 1;
-    }
-
-    return 0;
-}
-
-int is_available (ChessBoard board, Position pos) {
-    if (is_in_board(pos) && is_empty(board, pos)) {
         return 1;
     }
 
@@ -129,7 +121,7 @@ int is_end (ChessBoard board, Position pos, Position direction, int color) {
     }
 
     // Open end
-    else if (is_empty(board, pos) && !is_color(board, pos_move(pos, direction), color)) {
+    else if (is_empty(board, pos) && !is_color(board, pos_move(pos, direction), color)) { // X(_)?
         return 1;
     }
     
@@ -137,7 +129,7 @@ int is_end (ChessBoard board, Position pos, Position direction, int color) {
 }
 
 Position move_to_end (ChessBoard board, Position pos_at, Position direction, int color) {
-    while (is_in_board(pos_at) && !is_end(board, pos_at, direction, color)) {
+    while (!is_end(board, pos_at, direction, color)) {
         pos_at = pos_move(pos_at, direction);
     }
 

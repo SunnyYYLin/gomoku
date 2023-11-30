@@ -25,7 +25,7 @@ ChessBoard empty_board() {
 // }
 
 // Display the current state of the board and Trun NEW to DEFAULT
-void print_board(ChessBoard board) {
+void print_board(ChessBoard board, Chess newChess) {
     printf("Round %d\n", newChess.turn);
 
     // Print column headers
@@ -75,7 +75,7 @@ void print_board(ChessBoard board) {
     }
 }
 
-ChessBoard update_board(ChessBoard board, Chess newChess) {
+ChessBoard drop_board(ChessBoard board, Chess newChess) {
     board.board[newChess.pos.x][newChess.pos.y] = newChess;
     return board;
 }

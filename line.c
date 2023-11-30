@@ -1,41 +1,44 @@
 #include "referee.h"
 
 #include "board.h"
+#include <stdio.h>
 
 Shape empty_shape() {
     Shape shape;
     shape.fives = 0;
-    shape.fours = 0;
-    shape.live_threes = 0;
     shape.longs = 0;
+    shape.open_fours = 0;
+    shape.broken_fours = 0;
+    shape.open_threes = 0;
+    shape.broken_threes = 0;
     return shape;
 }
 
 Line empty_line() {
     Line line;
-    line.start_open = 0;
-    line.end_open = 0;
-    for (int i = 0; i < 4; i++) {
+    line.is_start_open = 0;
+    line.is_end_open = 0;
+    for (int i = 0; i < SIZE; i++) {
         line.segs[i] = 0;
     }
     line.shape = empty_shape();
     return line;
 }
 
-// new_seg_judgement
-int is_new_seg_start(ChessBoard board, int color, Position pos_at, int is_in_seg, int depth) {
-    Chess chess = make_chess(color, pos_at);
-    return !is_in_seg && is_color(board, pos_at, color);
-}
+int fill_segs (ChessBoard board, Position pos_at, int color) {
+    int value;
 
-int is_new_seg_continue(ChessBoard board, int color, Position pos_at, int is_in_seg, int depth) {
-    Chess chess = make_chess(color, pos_at);
-    return is_in_seg && is_color(board, pos_at, color);
-}
+    if (is_color(board, pos_at, color)) {
+        value = 1;
+    }
+    else if (is_empty(board, pos_at)) {
+        value = 0;
+    }
+    else {
+        value = -1;
+    }
 
-int is_new_seg_end(ChessBoard board, int color, Position pos_at, int is_in_seg, int depth) {
-    Chess chess = make_chess(color, pos_at);
-    return is_in_seg && !is_forbidden(board, chess, depth);
+    return value;
 }
 
 Line get_line (ChessBoard board, int color, Position pos_at, Position direction) {
@@ -44,200 +47,201 @@ Line get_line (ChessBoard board, int color, Position pos_at, Position direction)
     int is_in_seg = 0;
     int seg_length = 0;
 
-    printf("Getting line in direction (%d,%d) starting from (%d,%d)\n", direction.x, direction.y, pos_at.x, pos_at.y);
+    // printf("Getting line in direction (%d,%d) starting from (%d,%c)\n", direction.x, direction.y, pos_at.x+1, pos_at.y+'A');
 
-    while (is_in_board(pos_at)) {
-        printf("At position (%d,%d), ", pos_at.x, pos_at.y);
-        if (is_new_seg_start(board, color, pos_at, is_in_seg)) {
-            is_in_seg = 1;
-            seg_length++;
-            printf("Starting new segment\n");
+    do {
+        // printf("At position (%d,%c), ", pos_at.x+1, pos_at.y+'A');
+        switch (i) {
+            case 1:
+                line.is_start_open = is_empty(board, pos_at);
+            default:
+                line.segs[i] = fill_segs(board, pos_at, color);
+                i++;
+                pos_at = pos_move(pos_at, direction);
         }
-        else if (is_new_seg_continue(board, color, pos_at, is_in_seg)) {
-            seg_length++;
-            printf("Continuing segment, length now %d\n", seg_length);
-        }
-        else if (is_new_seg_end(board, color, pos_at, is_in_seg)) {
-            printf("Segment ended with length %d\n", seg_length);
-            line.segs[i] = seg_length;
-            if (i == 0) {
-                line.start_open = 1;
-            }
-            is_in_seg = 0;
-            seg_length = 0;
-            i++;
-        }
-        else {
-            printf("Line ended at (%d, %d)\n", pos_at.x, pos_at.y);
-            pos_at = pos_move(pos_at, rev_direc(direction));
-            break;
-        }
-        pos_at = pos_move(pos_at, direction);
     }
+    while (!is_end(board, pos_at, direction, color));
 
-    if (is_in_seg) {
-        line.segs[i] = seg_length;
-        printf("Segments ended with length %d\n", seg_length);
-    }
-    line.end_open = is_forbidden(board, make_chess, depth);
+    line.is_end_open = is_empty(board, pos_at);
+    line.segs[i] = fill_segs(board, pos_at, color);
+    line.segs[i+1] = fill_segs(board, pos_move(pos_at, direction), color);
+    line.segs[i+2] = -2;
 
-    printf("Line: ");
-    for (int j = 0; j <= i; j++) {
-        printf("%d ", line.segs[j]);
-    }
-    printf(" start_open=%d, end_open=%d\n", line.start_open, line.end_open);
+    // printf("Line: ");
+    // for (int j = 0; j <= i+1; j++) {
+    //     printf("%d ", line.segs[j]);
+    // }
+    // printf(" start_open=%d, end_open=%d\n", line.is_start_open, line.is_end_open);
 
     return line;
 }
 
-int is_segs_start(int i) {
-    if (i == 0) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
+Line num_fives_and_longs(Line line) {
+    int i = 0;
+    int count = 0;
+    int is_in_seg = 0;
 
-int is_segs_end(Line line, int i) {
-    if (line.segs[i+1] == 0) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
-int is_in_segs(Line line, int i) {
-    if (line.segs[i] != 0) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
-int is_segs_inside(Line line, int i) {
-    if (is_in_segs(line, i) && !is_segs_start(i) &&!is_segs_end(line, i)) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
-int num_fives(Line line) {
-    int fives = 0;
-
-    for (int i = 0; is_in_segs(line, i); i++) {
-        if (line.segs[i] == 5) {
-            fives ++;
+    do {
+        if (is_in_seg && line.segs[i] == 1) {
+            count ++;
         }
-    }
-
-    return fives;
-}
-
-int num_fours(Line line) {
-    int fours = 0;
-
-    for (int i = 0; is_in_segs(line, i); i++) {
-        // jump four
-        if ((line.segs[i] == 3 && line.segs[i+1] == 1) // XXX_X
-        || (line.segs[i] == 1 && line.segs[i+1] == 3) // X_XXX
-        || (line.segs[i] == 2 && line.segs[i+1] == 2)) // XX_XX
-        {
-            fours ++;
-        }
-        // connective four
-        else if (line.segs[i] == 4)
-        {
-            if ((is_segs_start(i) && line.start_open) // _|XXXX
-            || (is_segs_end(line, i) && line.end_open) // XXXX|_
-            || is_segs_inside(line, i)) // _XXXX_
-            {
-                fours ++;
+        else if (is_in_seg && line.segs[i] != 1) {
+            if (count == 5) {
+                line.shape.fives ++;
             }
+            else if (count > 5) {
+                line.shape.longs ++;
+            }
+            count = 0;
+            is_in_seg = 0;
         }
+        else if (!is_in_seg && line.segs[i] == 1) {
+            is_in_seg = 1;
+            count ++;
+        }
+        i ++;
     }
-
-    return fours;
+    while (line.segs[i] != -2);
+    
+    return line;
 }
 
-int num_live_threes(Line line) {
-    int live_threes = 0;
+Line num_open_fours(Line line) {
+    int is_seg_start_open = 0, is_seg_end_open = 0, is_in_seg = 0;
+    int count = 0;
+    int i = 0;
 
-    for (int i = 0; is_in_segs(line, i); i++) {
-        // connective three
-        if (line.segs[i] == 3) {
-            if ((is_segs_start(i) && !is_segs_end(line, i) && line.start_open) // _|XXX_
-            || (is_segs_end(line, i) && !is_segs_start(i) && line.end_open) // _XXX|_
-            || (is_segs_end(line, i) && is_segs_start(i) && line.start_open && line.end_open)) {  // _|XXX|_
-                live_threes ++;
-            }
+    do {
+        if (is_in_seg && line.segs[i] == 1) {
+            count ++;
         }
-        // jump three
-        else if (line.segs[i] == 1 && line.segs[i+1] == 2) {
-            if (is_segs_inside(line, i) && is_segs_inside(line, i+1) // _X_XX_
-            || (is_segs_end(line, i+1) && !is_segs_start(i) && line.end_open) // _X_XX|_
-            || (is_segs_start(i) && !is_segs_end(line, i+1) && line.start_open) // _|X_XX_
-            || (is_segs_end(line, i+1) && is_segs_start(i) && line.start_open && line.end_open)) {// _|X_XX|_
-                live_threes ++;
+        else if (is_in_seg && line.segs[i] != 1) {
+            if (line.segs[i] == 0 && line.segs[i+1] != 1) {
+                is_seg_end_open = 1;
             }
-        }
-        else if (line.segs[i+1] == 1 && line.segs[i] == 2) {
-            if (is_segs_inside(line, i+1) && is_segs_inside(line, i) // _XX_X_
-            || (is_segs_end(line, i+1) && !is_segs_start(i) && line.end_open) // _XX_X|_
-            || (is_segs_start(i) && !is_segs_end(line, i+1) && line.start_open) // _|XX_X_
-            || (is_segs_end(line, i+1) && is_segs_start(i) && line.start_open && line.end_open)) {// _|XX_X|_
-                live_threes ++;
+            if (count == 4 && is_seg_start_open && is_seg_end_open) {
+                line.shape.open_fours ++;
             }
+            is_seg_start_open = 0;
+            is_seg_end_open = 0;
+            is_in_seg = 0;
+            count = 0;
         }
+        else if (!is_in_seg && line.segs[i] == 1) {
+            if (i-1 >= 0 && line.segs[i-1] == 0 && (i-2<0 || line.segs[i-2] != 1)) {
+                is_seg_start_open = 1;
+            }
+            is_in_seg = 1;
+            count ++;
+        }
+        i ++;
     }
+    while (line.segs[i] != -2);
 
-    return live_threes;
+    return line;
 }
 
-int num_longs(Line line) {
-    int longs = 0;
+Line num_broken_fours(Line line) {
+    int i = 0;
+    int num_to_be_five = 0;
 
-    for (int i = 0; is_in_segs(line, i) && i<=SIZE; i++) {
-        if (line.segs[i] > 5) {
-            longs ++;
+    do {
+        if (line.segs[i] == 0) {
+            Line test_line = line;
+            test_line.segs[i] = 1;
+            num_to_be_five += num_fives_and_longs(test_line).shape.fives - line.shape.fives;
         }
+        i ++;
     }
+    while (line.segs[i] != -2);
 
-    return longs;
+    line.shape.broken_fours = num_to_be_five - 2*line.shape.open_fours;
+
+    return line;
+}
+
+Line num_open_threes(Line line) {
+    int is_seg_start_open = 0, is_seg_end_open = 0, is_in_seg = 0;
+    int count = 0;
+    int i = 0;
+
+    do {
+        if (is_in_seg && line.segs[i] == 1) {
+            count ++;
+        }
+        else if (is_in_seg && line.segs[i] != 1) {
+            if (line.segs[i] == 0 && line.segs[i+1] != 1) {
+                is_seg_end_open = 1;
+            }
+            if (count == 3 && is_seg_start_open && is_seg_end_open) {
+                line.shape.open_threes ++;
+            }
+            is_seg_start_open = 0;
+            is_seg_end_open = 0;
+            is_in_seg = 0;
+            count = 0;
+        }
+        else if (!is_in_seg && line.segs[i] == 1) {
+            if (i-1 >= 0 && line.segs[i-1] == 0 && (i-2<0 || line.segs[i-2] != 1)) {
+                is_seg_start_open = 1;
+            }
+            is_in_seg = 1;
+            count ++;
+        }
+        i ++;
+    }
+    while (line.segs[i] != -2);
+
+    return line;
+}
+
+Line num_broken_threes(Line line) {
+    int i = 0;
+    int num_to_be_open_fours = 0;
+
+    do {
+        if (line.segs[i] == 0) {
+            Line test_line = line;
+            test_line.segs[i] = 1;
+            num_to_be_open_fours += (num_open_fours(test_line).shape.open_fours - line.shape.open_fours > 0)?(num_open_fours(test_line).shape.open_fours - line.shape.open_fours):0;
+        }
+        i ++;
+    }
+    while (line.segs[i] != -2);
+
+    line.shape.broken_threes = num_to_be_open_fours - 2*line.shape.open_threes;
+
+    return line;
 }
 
 Line line_shape(Line line) {
-    line.shape.live_threes = num_live_threes(line);
-    line.shape.fours = num_fours(line);
-    line.shape.fives = num_fives(line);
-    line.shape.longs = num_longs(line);
+    line = num_fives_and_longs(line);
+    line = num_open_fours(line);
+    line = num_broken_fours(line);
+    line = num_open_threes(line);
+    line = num_broken_threes(line);
     
     return line;
 }
 
 Shape sum_lines(ChessBoard board, Chess chess) {
     Shape sum_shape = empty_shape();
-    Line line;
     Position pos_at;
 
-    printf("Analyzing lines from position (%d,%d)\n", chess.pos.x, chess.pos.y);
+    // printf("Analyzing lines from position (%d,%c)\n", chess.pos.x+1, chess.pos.y+'A');
     for (int i = 0; i < 4; i++) {
         pos_at = chess.pos;
         pos_at = move_to_end(board, chess.pos, directions[i], chess.color);
-        line = get_line(board, chess.color, pos_at, rev_direc(directions[i]));
+        Line line = get_line(board, chess.color, pos_move(pos_at, directions[i]), rev_direc(directions[i]));
+        line = line_shape(line);
         
-        sum_shape.live_threes += num_live_threes(line);
-        sum_shape.fours += num_fours(line);
-        sum_shape.fives += num_fives(line);
-        sum_shape.longs += num_longs(line);
-
-        printf("Direction %d: live_threes=%d, fours=%d, fives=%d, longs=%d\n", i, num_live_threes(line), num_fours(line), num_fives(line), num_longs(line));
+        sum_shape.fives += line.shape.fives;
+        sum_shape.longs += line.shape.longs;
+        sum_shape.open_fours += line.shape.open_fours;
+        sum_shape.broken_fours += line.shape.broken_fours;
+        sum_shape.open_threes += line.shape.open_threes;
+        sum_shape.broken_threes += line.shape.broken_threes;
     }
-    printf("Total: live_threes=%d, fours=%d, fives=%d, longs=%d\n", sum_shape.live_threes, sum_shape.fours, sum_shape.fives, sum_shape.longs);
 
     return sum_shape;
 }
