@@ -38,8 +38,9 @@ extern const char* colorText[3];
 
 // board.c
 ChessBoard empty_board();
-void print_board(ChessBoard board, Chess newChess);
+void print_board(ChessBoard board, int turn);
 ChessBoard drop_board(ChessBoard board, Chess chess);
+ChessBoard undo_board(ChessBoard board, Chess chess);
 
 // position.c
 int is_empty(ChessBoard board, Position pos);

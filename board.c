@@ -25,13 +25,13 @@ ChessBoard empty_board() {
 // }
 
 // Display the current state of the board and Trun NEW to DEFAULT
-void print_board(ChessBoard board, Chess newChess) {
-    printf("Round %d\n", newChess.turn);
+void print_board(ChessBoard board, int turn) {
+    printf("Round %d\n", turn);
 
     // Print column headers
     printf("  ");
     for (int i = 0; i < SIZE; i++) {
-        printf("%c", 'A' + i);
+        printf("%c ", 'A' + i);
     }
     printf("\n");
 
@@ -54,7 +54,7 @@ void print_board(ChessBoard board, Chess newChess) {
                     else printf("┼");
                     break;
                 case BLACK:
-                    if (board.board[i][j].turn == newChess.turn) {
+                    if (board.board[i][j].turn == turn) {
                         printf("▲");
                     }
                     else {
@@ -62,7 +62,7 @@ void print_board(ChessBoard board, Chess newChess) {
                     }
                     break;
                 case WHITE:
-                    if (board.board[i][j].turn == newChess.turn) {
+                    if (board.board[i][j].turn == turn) {
                         printf("△");
                     }
                     else {
@@ -77,5 +77,17 @@ void print_board(ChessBoard board, Chess newChess) {
 
 ChessBoard drop_board(ChessBoard board, Chess newChess) {
     board.board[newChess.pos.x][newChess.pos.y] = newChess;
+    return board;
+}
+
+ChessBoard undo_board(ChessBoard board, Chess newChess) {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++){
+            if (board.board[i][j].turn == newChess.turn - 1) {
+                board.board[i][j] = empty_chess();
+            }
+        }
+    }
+
     return board;
 }

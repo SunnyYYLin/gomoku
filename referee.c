@@ -24,6 +24,6 @@ void referee_output(int referee, Chess newChess) {
         printf("%s wins! Game over.\n", colorText[newChess.color + 1]);
     }
     else if (referee == 1) {
-        printf("BLack had a forbbiden move! Game over.\n");
+        printf("Black had a forbbiden move! Game over.\n");
     }
 }

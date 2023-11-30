@@ -9,7 +9,7 @@ Chess newChess;
 int referee;
 
 int main() {
-    const int MODE = 1;
+    const int MODE = 0;
 
     RESTART:
     board = empty_board();
@@ -21,17 +21,24 @@ int main() {
     switch (MODE) {
         case 0:
             for (newChess.turn = 0; newChess.turn <= SIZE*SIZE && referee == 0; newChess.turn++) {
-                newChess.color = chess_color(newChess);
                 if (newChess.turn == 0) {
-                    print_board(board, newChess);
+                    UNDO:
+                    system("cls");
+                    print_board(board, newChess.turn - 1);
                 }
+                newChess.color = chess_color(newChess);
                 do {
                     newChess.pos = chess_human_drop(newChess);
+                    if (newChess.pos.y == 'X'-'A' && newChess.pos.x == 0) {
+                        board = undo_board(board, newChess);
+                        newChess.turn--;
+                        goto UNDO;
+                    }
                 }
                 while (!is_valid(board, newChess));
                 system("cls");
                 board = drop_board(board, newChess);
-                print_board(board, newChess);
+                print_board(board, newChess.turn);
                 referee = is_forbidden(board, newChess);
             }
             break;
@@ -39,13 +46,13 @@ int main() {
             for (newChess.turn = 0; newChess.turn <= SIZE*SIZE && referee == 0; newChess.turn++) {
                 newChess.color = chess_color(newChess);
                 if (newChess.turn == 0) {
-                    system("chcp 65001");
-                    print_board(board, newChess);
+                    system("cls");
+                    print_board(board, newChess.turn - 1);
                 }
                 newChess.pos = chess_random_drop(board, newChess);
                 system("cls");
                 board = drop_board(board, newChess);
-                print_board(board, newChess);
+                print_board(board, newChess.turn);
                 referee = is_forbidden(board, newChess);
             }
             break;

@@ -8,7 +8,7 @@
 extern Chess newChess;
 
 Chess empty_chess() {
-    Chess empty = {-1, EMPTY, {0,0}};
+    Chess empty = {-1, EMPTY, {-1,-1}};
     return empty;
 }
 
@@ -26,7 +26,7 @@ Position chess_human_drop(Chess newChess) {
     char colChar;
 
     // Ask for the position of the chess
-    printf("Round %d is %s's. Drop on the board (example: B4):\n", newChess.turn, colorText[newChess.color + 1]);
+    printf("Round %d is %s's. Drop on the board (example: B4). Type in 'X1' to undo:\n", newChess.turn, colorText[newChess.color + 1]);
     
     // Read the input
     if (scanf(" %c%d", &colChar, &x) != 2) {
