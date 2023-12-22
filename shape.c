@@ -1,7 +1,10 @@
-#include "referee.h"
+#include "shape.h"
 
 #include "board.h"
 #include <stdio.h>
+
+static const Position directions[4] = {{1, 0}, {0, 1}, {1, 1}, {1, -1}};
+static Shape shapes[4];
 
 Shape empty_shape() {
     Shape shape;
@@ -25,7 +28,7 @@ Line empty_line() {
     return line;
 }
 
-int fill_segs (ChessBoard board, Position pos_at, int color) {
+int fill_segs (int** board, Position pos_at, int color) {
     int value;
 
     if (is_color(board, pos_at, color)) {
@@ -41,7 +44,7 @@ int fill_segs (ChessBoard board, Position pos_at, int color) {
     return value;
 }
 
-Line get_line (ChessBoard board, int color, Position pos_at, Position direction) {
+Line get_line (int** board, int color, Position pos_at, Position direction) {
     Line line = empty_line();
     int i = 0;
     int is_in_seg = 0;
@@ -225,23 +228,31 @@ Line line_shape(Line line) {
     return line;
 }
 
-Shape sum_lines(ChessBoard board, Chess chess) {
-    Shape sum_shape = empty_shape();
+void enroll_lines(int** board, Position pos, int color) {
     Position pos_at;
 
     // printf("Analyzing lines from position (%d,%c)\n", chess.pos.x+1, chess.pos.y+'A');
     for (int i = 0; i < 4; i++) {
-        pos_at = chess.pos;
-        pos_at = move_to_end(board, chess.pos, directions[i], chess.color);
-        Line line = get_line(board, chess.color, pos_move(pos_at, directions[i]), rev_direc(directions[i]));
+        pos_at = pos;
+        pos_at = move_to_end(board, pos, directions[i], color);
+        Line line = get_line(board, color, pos_move(pos_at, directions[i]), rev_direc(directions[i]));
         line = line_shape(line);
-        
-        sum_shape.fives += line.shape.fives;
-        sum_shape.longs += line.shape.longs;
-        sum_shape.open_fours += line.shape.open_fours;
-        sum_shape.broken_fours += line.shape.broken_fours;
-        sum_shape.open_threes += line.shape.open_threes;
-        sum_shape.broken_threes += line.shape.broken_threes;
+        shapes[i] = line.shape;
+    }
+}
+
+Shape sum_lines() {
+    Shape sum_shape = empty_shape();
+    Shape shape;
+    
+    for (int i = 0; i < 4; i++) {
+        shape = shapes[i];
+        sum_shape.fives += shape.fives;
+        sum_shape.longs += shape.longs;
+        sum_shape.open_fours += shape.open_fours;
+        sum_shape.broken_fours += shape.broken_fours;
+        sum_shape.open_threes += shape.open_threes;
+        sum_shape.broken_threes += shape.broken_threes;
     }
 
     return sum_shape;

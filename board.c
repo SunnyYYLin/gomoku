@@ -1,31 +1,42 @@
 #include "board.h"
 
 #include <stdio.h>
-#include <ctype.h>
+#include <stdlib.h>
 
-extern Chess newChess;
+#include "global.h"
 
-ChessBoard empty_board() {
-    ChessBoard board;
+int **board;
+
+void init_board(int*** board_ptr) {
+    int **board_temp = (int **)malloc(SIZE * sizeof(int *));
+    if (board_temp == NULL) {
+        // 无法分配内存，处理错误，例如打印错误消息并退出程序
+        fprintf(stderr, "Memory allocation failed for board_temp.\n");
+        exit(EXIT_FAILURE);
+    }
+
     for (int i = 0; i < SIZE; i++) {
+        board_temp[i] = (int *)malloc(SIZE * sizeof(int));
+        if (board_temp[i] == NULL) {
+            // 无法分配内存，处理错误，释放之前已分配的内存并退出
+            fprintf(stderr, "Memory allocation failed for board_temp[%d].\n", i);
+            for (int j = 0; j < i; j++) {
+                free(board_temp[j]); // 释放之前分配的行
+            }
+            free(board_temp); // 释放行指针数组
+            exit(EXIT_FAILURE);
+        }
+
         for (int j = 0; j < SIZE; j++) {
-            board.board[i][j] = empty_chess();
+            board_temp[i][j] = EMPTY; // 假设 EMPTY 已经定义
         }
     }
-    return board;
+
+    *board_ptr = board_temp; // 将分配好的棋盘地址赋值给外部变量
 }
 
-// ChessBoard board_clear_visit (ChessBoard board){
-//     for (int i = 0; i < SIZE; i++) {
-//         for (int j = 0; j < SIZE; j++) {
-//             board.board[i][j].has_been_visited = 0;
-//         }
-//     }
-//     return board;
-// }
-
-// Display the current state of the board and Trun NEW to DEFAULT
-void print_board(ChessBoard board, int turn) {
+// Display the current state of the board
+void print_board(int** board, Position pos_new, int turn) {
     printf("Round %d\n", turn);
 
     // Print column headers
@@ -40,7 +51,7 @@ void print_board(ChessBoard board, int turn) {
         printf("%2d", i + 1); // Print row number
         for (int j = 0; j < SIZE; j++) {
             // Print the appropriate character based on the board's state
-            switch (board.board[i][j].color) {
+            switch (board[i][j]) {
                 case EMPTY:
                     // Special characters for the board's edges and corners
                     if (i == 0 && j == 0) printf("┌");
@@ -54,7 +65,7 @@ void print_board(ChessBoard board, int turn) {
                     else printf("┼");
                     break;
                 case BLACK:
-                    if (board.board[i][j].turn == turn) {
+                    if (i == pos_new.x && j == pos_new.y) {
                         printf("▲");
                     }
                     else {
@@ -62,7 +73,7 @@ void print_board(ChessBoard board, int turn) {
                     }
                     break;
                 case WHITE:
-                    if (board.board[i][j].turn == turn) {
+                    if (i == pos_new.x && j == pos_new.y) {
                         printf("△");
                     }
                     else {
@@ -75,19 +86,140 @@ void print_board(ChessBoard board, int turn) {
     }
 }
 
-ChessBoard drop_board(ChessBoard board, Chess newChess) {
-    board.board[newChess.pos.x][newChess.pos.y] = newChess;
-    return board;
+void drop_board(int** board, Position pos, int color) {
+    board[pos.x][pos.y] = color;
 }
 
-ChessBoard undo_board(ChessBoard board, Chess newChess) {
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++){
-            if (board.board[i][j].turn == newChess.turn - 1) {
-                board.board[i][j] = empty_chess();
-            }
-        }
+void undo_board(int** board, Position pos) {
+    board[pos.x][pos.y] = EMPTY;
+}
+
+// Boolean methods
+int is_empty (int** board, Position pos) {
+    int x = pos.x;
+    int y = pos.y;
+
+    if (is_in_board(pos)&&board[x][y] == EMPTY) {
+        return 1;
     }
 
-    return board;
+    return 0;
+}
+
+int is_color (int** board, Position pos, int color) {
+    int x = pos.x;
+    int y = pos.y;
+
+    if (is_in_board(pos) && board[x][y] == color) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int is_center (Position pos) {
+    int x = pos.x;
+    int y = pos.y;
+
+    if (x == SIZE/2 && y == SIZE/2) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int is_in_board (Position pos) {
+    int x = pos.x;
+    int y = pos.y;
+
+    if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int is_on_edge (Position pos) {
+    int x = pos.x;
+    int y = pos.y;
+
+    if (x == 0 || x == SIZE-1 || y == 0 || y == SIZE-1) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int is_on_corner (Position pos) {
+    int x = pos.x;
+    int y = pos.y;
+
+    if ((x == 0 || x == SIZE-1) && (y == 0 || y == SIZE-1)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int is_valid(int** board, Position pos) {
+    if (!is_in_board(pos)) {
+        printf("Out of board! Please drop on the board.\n");
+        return -1;
+    }
+    else if (!is_empty(board, pos)) {
+        printf("The position is not empty! Please drop on an empty position.\n");
+        return -2;
+    }
+    else if (turn == 0 && !(pos.x == SIZE/2 && pos.y == SIZE/2)) {
+        printf("The first move must be on the center of the board!\n");
+        return -3;
+    }
+    else {
+        return 1;
+    }
+}
+
+int is_end (int** board, Position pos, Position direction, int color) {
+
+    // Close end
+    if ((is_color(board, pos, color) && is_color(board, pos_move(pos, direction), -color)) // X(X)O
+    || !is_in_board(pos_move(pos, direction))) { // X(X)|
+        return 1;
+    }
+
+    // Open end
+    else if (is_empty(board, pos) && !is_color(board, pos_move(pos, direction), color)) { // X(_)?
+        return 1;
+    }
+    
+    return 0;
+}
+
+// Position methods
+
+Position rev_direc (Position direction) {
+    Position rev_direction = {-direction.x, -direction.y};
+
+    return rev_direction;
+}
+
+Position pos_make (int x, int y) {
+    Position pos = {x, y};
+    return pos;
+}
+
+Position pos_move (Position pos_at, Position direction) {
+
+    pos_at.x += direction.x;
+    pos_at.y += direction.y;
+
+    return pos_at;
+}
+
+Position move_to_end (int** board, Position pos_at, Position direction, int color) {
+    while (!is_end(board, pos_at, direction, color)) {
+        pos_at = pos_move(pos_at, direction);
+    }
+
+    return pos_at;
 }

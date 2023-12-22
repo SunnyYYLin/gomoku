@@ -2,7 +2,7 @@
 #define INCLUDE_H
 
 #include "board.h"
-#include "referee.h"
+#include "shape.h"
 #include "game.h"
 
 #endif

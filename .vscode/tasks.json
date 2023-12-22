@@ -7,11 +7,9 @@
             "args": [
                 "-g",
                 "main.c",
-                "line.c",
                 "board.c",
-                "position.c",
-                "referee.c",
-                "chess.c",
+                "shape.c",
+                "game.c", 
                 // "test.c",
                 // "ai.c",
                 // "genann.c",
