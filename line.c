@@ -149,7 +149,8 @@ Line num_broken_fours(Line line) {
         if (line.segs[i] == 0) {
             Line test_line = line;
             test_line.segs[i] = 1;
-            num_to_be_five += num_fives_and_longs(test_line).shape.fives - line.shape.fives;
+            test_line = num_fives_and_longs(test_line);
+            num_to_be_five += test_line.shape.fives - line.shape.fives;
         }
         i ++;
     }

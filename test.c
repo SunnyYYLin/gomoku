@@ -27,7 +27,7 @@ void test3();
 
 int main() {
     system("chcp 65001");
-    test4();
+    open_threes_test2();
     getchar();
 
     return 0;
@@ -49,7 +49,7 @@ void open_threes_test1() {
     Chess newChess = {0,BLACK,{2,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -65,7 +65,7 @@ void open_threes_test2() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -81,7 +81,7 @@ void broken_threes_test1() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -98,7 +98,7 @@ void broken_threes_test2() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -114,7 +114,7 @@ void broken_threes_test3() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -132,7 +132,7 @@ void open_fours_test1() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -152,7 +152,7 @@ void open_fours_test2() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -171,7 +171,7 @@ void broken_fours_test1() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -192,7 +192,7 @@ void broken_fours_test2() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -210,7 +210,7 @@ void broken_fours_test3() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -230,7 +230,7 @@ void longs_test1() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
     shape_print(sum_lines(board, newChess));
 }
 
@@ -247,7 +247,7 @@ void fives_test1() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
 
     shape_print(sum_lines(board, newChess));
 }
@@ -265,7 +265,7 @@ void test1() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
 
     shape_print(sum_lines(board, newChess));
 }
@@ -282,7 +282,7 @@ void test2() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
 
     shape_print(sum_lines(board, newChess));
 }
@@ -303,7 +303,7 @@ void test3() {
     Chess newChess = {0,BLACK,{7,7}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
 
     shape_print(sum_lines(board, newChess));
 }
@@ -322,7 +322,7 @@ void test4() {
     Chess newChess = {0,BLACK,{0,2}};
     board = drop_board(board, newChess);
 
-    print_board(board, newChess);
+    print_board(board, 0);
 
     shape_print(sum_lines(board, newChess));
 }

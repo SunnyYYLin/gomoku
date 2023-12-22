@@ -17,7 +17,7 @@ int chess_color(Chess chess) {
 }
 
 Chess make_chess(int color, Position pos) {
-    Chess chess = {0, color, {pos.x, pos.y}};
+    Chess chess = {-1, color, {pos.x, pos.y}};
     return chess;
 }
 
@@ -45,8 +45,6 @@ Position chess_random_drop(ChessBoard board, Chess newChess) {
     int x, y;
     int count = 0;
     Position valid_positions[SIZE*SIZE];
-
-    srand(time(NULL));
 
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {

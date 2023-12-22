@@ -3,5 +3,6 @@
 
 #include "board.h"
 #include "referee.h"
+#include "game.h"
 
 #endif
