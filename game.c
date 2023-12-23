@@ -6,6 +6,7 @@
 
 extern Player player1, player2;
 extern int **board;
+extern AI ai1, ai2;
 const char* colorText[3] = {"White", "Empty", "Black"};
 const char* playerType[3] = {"Human", "Random", "AI"};
 Position pos_new;
@@ -57,10 +58,10 @@ void play_game() {
 
     if (turn % 2 == 0) {
         player_drop(player1);
-        referee = is_forbidden(board, pos_new, player1);
+        referee = game_referee(board, pos_new, player1.color);
     } else {
         player_drop(player2);
-        referee = is_forbidden(board, pos_new, player2);
+        referee = game_referee(board, pos_new, player2.color);
     }
     system("cls");
     print_board(board, pos_new, turn);
@@ -68,21 +69,26 @@ void play_game() {
 
 void player_drop(Player player) {
     Position pos;
-    switch (player.type) {
-        case 0:
-            pos_new = human_drop(player);
-            break;
-        case 1:
-            pos_new = random_drop(player);
-            break;
-        // case 2:
-        //     pos = ai_drop(player);
-        //     break;
-        default:
-            printf("Invalid player type!\n");
-            break;
+    do {
+        switch (player.type) {
+            case 0:
+                pos_new = human_drop(player);
+                break;
+            case 1:
+                pos_new = random_drop(player);
+                break;
+            case 2:
+                pos_new = ai_drop(board, player.color, ai1);
+                break;
+            case 3:
+                pos_new = ai_drop(board, player.color, ai2);
+                break;
+            default:
+                printf("Invalid player type!\n");
+                break;
+        }
     }
-    drop_board(board, pos_new, player.color);
+    while (!drop_board(board, pos_new, player.color));
 }
 
 Position human_drop(Player player) {
@@ -91,58 +97,51 @@ Position human_drop(Player player) {
 
     printf("Round %d is %s's turn. Drop on the board (example: B4). Type in 'X1' to undo:\n", turn, colorText[player.color + 1]);
     
-    do {
-        if (scanf(" %c%d", &colChar, &x) != 2) {
-            // 输入格式错误，清除缓冲区并提示重新输入
-            scanf("%*[^\n]"); // 清除错误输入
-            scanf("%*c"); // 清除换行符
-            printf("Invalid input format! Please use the format like 'B4'.\n");
-            continue;
-        }
+    if (scanf(" %c%d", &colChar, &x) != 2) {
+        // 输入格式错误，清除缓冲区并提示重新输入
+        scanf("%*[^\n]"); // 清除错误输入
+        scanf("%*c"); // 清除换行符
+        printf("Invalid input format! Please use the format like 'B4'.\n");
+        return (Position){-1, -1};
+    }
 
-        if (colChar == 'X') {
-            return (Position){-1, -1};
-        }
+    if (colChar == 'X') {
+        return (Position){'X', -1};
+    }
 
-        pos_new = (Position){x - 1, toupper(colChar) - 'A'};
-    } while (is_valid(board, pos_new) != 1);
+    pos_new = (Position){x - 1, toupper(colChar) - 'A'};
 
     return pos_new;
 }
 
 
 Position random_drop(Player player) {
-    int count = 0;
-    Position valid_positions[SIZE*SIZE];
+    int valid_count = 0;
+    Position* valid_pos = valid_positions(board, player.color, &valid_count);
 
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            if (board[i][j] == EMPTY) {
-                valid_positions[count] = (Position){i, j};
-                count++;
-            }
-        }
-    }
-
-    if (count == 0) {
+    if (valid_count == 0) {
+        printf("random_drop: No valid position!\n");
         return (Position){-1, -1};
     }
-
-    int random = rand() % count;
-    return valid_positions[random];
+    else {
+        int random_index = rand() % valid_count;
+        Position pos = valid_pos[random_index];
+        free(valid_pos);
+        return pos;
+    }
 }
 
 // Position ai_drop(Player player) {
 //     // AI 下棋逻辑
 // }
 
-int is_forbidden(int** board, Position pos, Player player) {
-    enroll_lines(board, pos, player.color);
-    Shape sum_shape = sum_lines();
-    if (sum_shape.fives > 0) {
+int game_referee(int** board, Position pos, int color) {
+    Shape* shapes = enroll_lines(board, pos, color);
+    Shape sum_shape = sum_lines(shapes);
+    if (is_win(sum_shape)) {
         return -1;
     }
-    else if (player.color == BLACK && (sum_shape.open_threes+sum_shape.broken_threes > 1 || sum_shape.broken_fours+sum_shape.open_fours > 1 || sum_shape.longs >0)) {
+    else if (is_forbidden(sum_shape, color)) {
         return 1;
     }
     else {

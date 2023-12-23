@@ -2,9 +2,9 @@
 
 #include "board.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 static const Position directions[4] = {{1, 0}, {0, 1}, {1, 1}, {1, -1}};
-static Shape shapes[4];
 
 Shape empty_shape() {
     Shape shape;
@@ -14,6 +14,8 @@ Shape empty_shape() {
     shape.broken_fours = 0;
     shape.open_threes = 0;
     shape.broken_threes = 0;
+    shape.open_twos = 0;
+    shape.broken_twos = 0;
     return shape;
 }
 
@@ -218,19 +220,76 @@ Line num_broken_threes(Line line) {
     return line;
 }
 
+Line num_open_twos(Line line) {
+    int is_seg_start_open = 0, is_seg_end_open = 0, is_in_seg = 0;
+    int count = 0;
+    int i = 0;
+
+    do {
+        if (is_in_seg && line.segs[i] == 1) {
+            count ++;
+        }
+        else if (is_in_seg && line.segs[i] != 1) {
+            if (line.segs[i] == 0 && line.segs[i+1] != 1) {
+                is_seg_end_open = 1;
+            }
+            if (count == 2 && is_seg_start_open && is_seg_end_open) {
+                line.shape.open_twos ++;
+            }
+            is_seg_start_open = 0;
+            is_seg_end_open = 0;
+            is_in_seg = 0;
+            count = 0;
+        }
+        else if (!is_in_seg && line.segs[i] == 1) {
+            if (i-1 >= 0 && line.segs[i-1] == 0 && (i-2<0 || line.segs[i-2] != 1)) {
+                is_seg_start_open = 1;
+            }
+            is_in_seg = 1;
+            count ++;
+        }
+        i ++;
+    }
+    while (line.segs[i] != -2);
+
+    return line;
+}
+
+Line num_broken_twos(Line line) {
+    int i = 0;
+    int num_to_be_open_threes = 0;
+
+    do {
+        if (line.segs[i] == 0) {
+            Line test_line = line;
+            test_line.segs[i] = 1;
+            num_to_be_open_threes += (num_open_threes(test_line).shape.open_threes - line.shape.open_threes > 0)?(num_open_threes(test_line).shape.open_threes - line.shape.open_threes):0;
+        }
+        i ++;
+    }
+    while (line.segs[i] != -2);
+
+    line.shape.broken_twos = num_to_be_open_threes - 2*line.shape.open_twos;
+
+    return line;
+}
+
 Line line_shape(Line line) {
     line = num_fives_and_longs(line);
     line = num_open_fours(line);
     line = num_broken_fours(line);
     line = num_open_threes(line);
     line = num_broken_threes(line);
+    line = num_open_twos(line);
+    line = num_broken_twos(line);
     
     return line;
 }
 
-void enroll_lines(int** board, Position pos, int color) {
+Shape* enroll_lines(int** board, Position pos, int color) {
     Position pos_at;
 
+    Shape* shapes = (Shape*)malloc(4*sizeof(Shape));
     // printf("Analyzing lines from position (%d,%c)\n", chess.pos.x+1, chess.pos.y+'A');
     for (int i = 0; i < 4; i++) {
         pos_at = pos;
@@ -239,9 +298,11 @@ void enroll_lines(int** board, Position pos, int color) {
         line = line_shape(line);
         shapes[i] = line.shape;
     }
+
+    return shapes;
 }
 
-Shape sum_lines() {
+Shape sum_lines(Shape* shapes) {
     Shape sum_shape = empty_shape();
     Shape shape;
     
@@ -253,7 +314,28 @@ Shape sum_lines() {
         sum_shape.broken_fours += shape.broken_fours;
         sum_shape.open_threes += shape.open_threes;
         sum_shape.broken_threes += shape.broken_threes;
+        sum_shape.open_twos += shape.open_twos;
+        sum_shape.broken_twos += shape.broken_twos;
     }
 
+    free(shapes);
     return sum_shape;
+}
+
+int is_forbidden(Shape sum_shape, int color) {
+    if (color == BLACK && (sum_shape.open_threes+sum_shape.broken_threes > 1 || sum_shape.broken_fours+sum_shape.open_fours > 1 || sum_shape.longs >0)) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+int is_win(Shape sum_shape) {
+    if (sum_shape.fives > 0) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
 }

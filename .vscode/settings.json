@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "chess.h": "c",
-        "global.h": "c"
+        "global.h": "c",
+        "game.h": "c"
     }
 }

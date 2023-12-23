@@ -10,6 +10,8 @@ typedef struct {
     int broken_fours;
     int open_threes;
     int broken_threes;
+    int open_twos;
+    int broken_twos;
 } Shape;
 
 typedef struct {
@@ -29,7 +31,9 @@ Line num_broken_fours(Line line);
 Line num_open_threes(Line line);
 Line num_broken_threes(Line line);
 Line line_shape(Line line);
-void enroll_lines(int** board, Position pos, int color);
-Shape sum_lines();
+Shape* enroll_lines(int** board, Position pos, int color);
+Shape sum_lines(Shape* shapes);
+int is_forbidden(Shape shape, int color);
+int is_win(Shape shape);
 
 #endif /* SHAPE_H */

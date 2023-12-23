@@ -86,8 +86,16 @@ void print_board(int** board, Position pos_new, int turn) {
     }
 }
 
-void drop_board(int** board, Position pos, int color) {
-    board[pos.x][pos.y] = color;
+int drop_board(int** board, Position pos, int color) {
+    if (is_valid(board, pos, 0) == 1) {
+        board[pos.x][pos.y] = color;
+        return 1;
+    }
+    else {
+        printf("drop_board: You can not drop at (%d, %d)!\n", pos.x, pos.y);
+        return 0;
+    }
+    
 }
 
 void undo_board(int** board, Position pos) {
@@ -161,17 +169,17 @@ int is_on_corner (Position pos) {
     return 0;
 }
 
-int is_valid(int** board, Position pos) {
+int is_valid(int** board, Position pos, int is_silent) {
     if (!is_in_board(pos)) {
-        printf("Out of board! Please drop on the board.\n");
+        if (!is_silent) printf("Out of board! Please drop on the board.\n");
         return -1;
     }
     else if (!is_empty(board, pos)) {
-        printf("The position is not empty! Please drop on an empty position.\n");
+        if (!is_silent) printf("The position is not empty! Please drop on an empty position.\n");
         return -2;
     }
     else if (turn == 0 && !(pos.x == SIZE/2 && pos.y == SIZE/2)) {
-        printf("The first move must be on the center of the board!\n");
+        if (!is_silent) printf("The first move must be on the center of the board!\n");
         return -3;
     }
     else {
@@ -192,6 +200,14 @@ int is_end (int** board, Position pos, Position direction, int color) {
         return 1;
     }
     
+    return 0;
+}
+
+int is_pos_equal(Position pos1, Position pos2) {
+    if (pos1.x == pos2.x && pos1.y == pos2.y) {
+        return 1;
+    }
+
     return 0;
 }
 
@@ -222,4 +238,43 @@ Position move_to_end (int** board, Position pos_at, Position direction, int colo
     }
 
     return pos_at;
+}
+
+Position* valid_positions(int** board, int color, int* count) {
+    int initial_size = 10; // 初始大小
+    int capacity = initial_size;
+    Position* valid_pos = (Position*)malloc(sizeof(Position) * capacity);
+    if (!valid_pos) {
+        *count = 0;
+        return NULL;
+    }
+
+    int num_valid_pos = 0;
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            Position pos = {i, j};
+            if (is_valid(board, pos, 1) == 1) {
+                if (num_valid_pos == capacity) {
+                    capacity *= 2; // 增加容量
+                    Position* temp = (Position*)realloc(valid_pos, sizeof(Position) * capacity);
+                    if (!temp) {
+                        free(valid_pos);
+                        *count = 0;
+                        return NULL;
+                    }
+                    valid_pos = temp;
+                }
+                valid_pos[num_valid_pos++] = pos;
+            }
+        }
+    }
+
+    // 重新调整数组大小以匹配实际数量
+    Position* resized_array = (Position*)realloc(valid_pos, sizeof(Position) * num_valid_pos);
+    if (resized_array != NULL) {
+        valid_pos = resized_array;
+    }
+
+    *count = num_valid_pos;
+    return valid_pos;
 }

@@ -10,6 +10,7 @@
                 "board.c",
                 "shape.c",
                 "game.c", 
+                "ai.c",
                 // "test.c",
                 // "ai.c",
                 // "genann.c",
