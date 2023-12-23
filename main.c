@@ -1,10 +1,13 @@
-#include "include.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "board.h"
+#include "game.h"
+#include "ai.h"
 
 // Global variables
-#include "global.h"
+extern AI ai1, ai2;
+extern int referee;
 Player player1, player2;
 int quit;
 

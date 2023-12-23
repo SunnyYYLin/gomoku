@@ -7,9 +7,9 @@
 extern Player player1, player2;
 extern int **board;
 extern AI ai1, ai2;
-const char* colorText[3] = {"White", "Empty", "Black"};
-const char* playerType[3] = {"Human", "Random", "AI"};
-Position pos_new;
+static const char* colorText[3] = {"White", "Empty", "Black"};
+static const char* playerType[3] = {"Human", "Random", "AI"};
+static Position pos_new;
 int turn;
 int referee;
 

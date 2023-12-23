@@ -7,6 +7,8 @@ typedef struct {
     int score;
 } Player;
 
+extern Player player1, player2;
+
 #include "shape.h"
 #include "board.h"
 #include "ai.h"

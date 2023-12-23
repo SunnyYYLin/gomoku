@@ -7,6 +7,8 @@
 
 #define SIZE 15 // The size of the board
 
+extern int turn;
+
 typedef struct {
     int x;
     int y;

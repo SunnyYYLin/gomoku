@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "global.h"
-
 int **board;
 
 void init_board(int*** board_ptr) {
