@@ -1,5 +1,4 @@
 #include "game.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -13,21 +12,23 @@ static Position pos_new;
 int turn;
 int referee;
 
+// Creates an empty player struct.
 Player empty_player() {
     Player player;
-    player.type = 0;
-    player.color = WHITE;
-    player.score = 0;
+    player.type = 0;  // Player type: Human, Random, AI
+    player.color = WHITE;  // Player color
+    player.score = 0;  // Player score
     return player;
 }
 
+// Initializes a player with a specified color.
 Player init_player(int color) {
     Player player = empty_player();
 
     printf("Please choose your type [0 for human/1 for random/2 for ai] for %s: \n", colorText[color+1]);
     while (scanf("%d", &player.type) != 1 || player.type < 0 || player.type > 2) {
         printf("Invalid input! Please try again.\n");
-        scanf("%*[^\n]"); // 清除错误输入
+        scanf("%*[^\n]");  // Clear erroneous input
     }
 
     player.color = color;
@@ -37,19 +38,22 @@ Player init_player(int color) {
     return player;
 }
 
+// Prints player information.
 void print_player(Player player) {
     printf("Player type: %s\t", playerType[player.type]);
     printf("Player color: %s\t", colorText[player.color+1]);
     printf("Player score: %d\n", player.score);
 }
 
+// Initializes the game environment.
 void init_game() {
     init_board(&board);
     turn = 0;
     referee = 0;
-    system("chcp 65001");
+    system("chcp 65001");  // Set character encoding to UTF-8
 }
 
+// Main game loop.
 void play_game() {
     if (turn == 0) {
         system("cls");
@@ -67,6 +71,7 @@ void play_game() {
     print_board(board, pos_new, turn);
 }
 
+// Handles a player's move.
 void player_drop(Player player) {
     Position pos;
     do {
@@ -91,6 +96,7 @@ void player_drop(Player player) {
     while (!drop_board(board, pos_new, player.color));
 }
 
+// Handles human player's move.
 Position human_drop(Player player) {
     int x, y;
     char colChar;
@@ -98,9 +104,9 @@ Position human_drop(Player player) {
     printf("Round %d is %s's turn. Drop on the board (example: B4). Type in 'X1' to undo:\n", turn, colorText[player.color + 1]);
     
     if (scanf(" %c%d", &colChar, &x) != 2) {
-        // 输入格式错误，清除缓冲区并提示重新输入
-        scanf("%*[^\n]"); // 清除错误输入
-        scanf("%*c"); // 清除换行符
+        // Clear input buffer on incorrect format and prompt again
+        scanf("%*[^\n]");  // Clear erroneous input
+        scanf("%*c");  // Clear newline character
         printf("Invalid input format! Please use the format like 'B4'.\n");
         return (Position){-1, -1};
     }
@@ -114,7 +120,7 @@ Position human_drop(Player player) {
     return pos_new;
 }
 
-
+// Random move generator for AI or random player.
 Position random_drop(Player player) {
     int valid_count = 0;
     Position* valid_pos = valid_positions(board, player.color, &valid_count);
@@ -131,24 +137,22 @@ Position random_drop(Player player) {
     }
 }
 
-// Position ai_drop(Player player) {
-//     // AI 下棋逻辑
-// }
-
+// Determines the game result based on the current board state.
 int game_referee(int** board, Position pos, int color) {
     Shape* shapes = enroll_lines(board, pos, color);
     Shape sum_shape = sum_lines(shapes);
     if (is_win(sum_shape)) {
-        return -1;
+        return -1;  // Win condition
     }
     else if (is_forbidden(sum_shape, color)) {
-        return 1;
+        return 1;   // Forbidden move condition
     }
     else {
-        return 0;
+        return 0;   // Continue playing
     }
 }
 
+// Displays the game result.
 void game_result(int turn, int referee) {
     if (referee == 0) {
         printf("It's a draw! Game over.\n");
@@ -157,6 +161,6 @@ void game_result(int turn, int referee) {
         printf("%s wins! Game over.\n", colorText[-2*(turn%2-1)]);
     }
     else if (referee == 1) {
-        printf("Black had a forbbiden move! Game over.\n");
+        printf("Black had a forbidden move! Game over.\n");
     }
 }

@@ -1,12 +1,14 @@
 #include "shape.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 
+// Array representing the four directions to check on the board
 static const Position directions[4] = {{1, 0}, {0, 1}, {1, 1}, {1, -1}};
 
+// Creates an empty shape struct
 Shape empty_shape() {
     Shape shape;
+    // Initializing all shape attributes to zero
     shape.fives = 0;
     shape.longs = 0;
     shape.open_fours = 0;
@@ -18,8 +20,10 @@ Shape empty_shape() {
     return shape;
 }
 
+// Creates an empty line struct
 Line empty_line() {
     Line line;
+    // Initializing line attributes, including setting its shape to empty
     line.is_start_open = 0;
     line.is_end_open = 0;
     for (int i = 0; i < SIZE; i++) {
@@ -29,32 +33,26 @@ Line empty_line() {
     return line;
 }
 
-int fill_segs (int** board, Position pos_at, int color) {
+// Fills segments in a line based on the board's state
+int fill_segs(int** board, Position pos_at, int color) {
     int value;
-
     if (is_color(board, pos_at, color)) {
-        value = 1;
+        value = 1;  // Same color as the player
+    } else if (is_empty(board, pos_at)) {
+        value = 0;  // Empty spot
+    } else {
+        value = -1; // Opponent's color or invalid
     }
-    else if (is_empty(board, pos_at)) {
-        value = 0;
-    }
-    else {
-        value = -1;
-    }
-
     return value;
 }
 
-Line get_line (int** board, int color, Position pos_at, Position direction) {
-    Line line = empty_line();
+// Retrieves a line of pieces from the board
+Line get_line(int** board, int color, Position pos_at, Position direction) {
+    Line line = empty_line(); // Start with an empty line
     int i = 0;
-    int is_in_seg = 0;
-    int seg_length = 0;
 
-    // printf("Getting line in direction (%d,%d) starting from (%d,%c)\n", direction.x, direction.y, pos_at.x+1, pos_at.y+'A');
-
+    // Iterate until the end of the line is reached
     do {
-        // printf("At position (%d,%c), ", pos_at.x+1, pos_at.y+'A');
         switch (i) {
             case 1:
                 line.is_start_open = is_empty(board, pos_at);
@@ -63,19 +61,12 @@ Line get_line (int** board, int color, Position pos_at, Position direction) {
                 i++;
                 pos_at = pos_move(pos_at, direction);
         }
-    }
-    while (!is_end(board, pos_at, direction, color));
+    } while (!is_end(board, pos_at, direction, color));
 
     line.is_end_open = is_empty(board, pos_at);
     line.segs[i] = fill_segs(board, pos_at, color);
     line.segs[i+1] = fill_segs(board, pos_move(pos_at, direction), color);
-    line.segs[i+2] = -2;
-
-    // printf("Line: ");
-    // for (int j = 0; j <= i+1; j++) {
-    //     printf("%d ", line.segs[j]);
-    // }
-    // printf(" start_open=%d, end_open=%d\n", line.is_start_open, line.is_end_open);
+    line.segs[i+2] = -2; // Marking the end of the line
 
     return line;
 }

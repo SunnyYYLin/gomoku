@@ -1,5 +1,4 @@
 #include "ai.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -7,6 +6,7 @@
 AI ai1;
 AI ai2;
 
+// Initializes an AI struct with predefined scores for different shapes.
 AI init_ai() {
     AI ai;
     ai.score_five = 1000;
@@ -19,17 +19,18 @@ AI init_ai() {
     return ai;
 }
 
+// Creates a deep copy of the game board.
 int** copy_board(int** board) {
     int** new_board = malloc(SIZE * sizeof(int*));
     if (new_board == NULL) {
-        // 内存分配失败
+        // Memory allocation failed
         return NULL;
     }
 
     for (int i = 0; i < SIZE; i++) {
         new_board[i] = malloc(SIZE * sizeof(int));
         if (new_board[i] == NULL) {
-            // 内存分配失败，释放之前分配的所有内存
+            // Memory allocation failed, free previously allocated memory
             for (int j = 0; j < i; j++) {
                 free(new_board[j]);
             }
@@ -41,6 +42,7 @@ int** copy_board(int** board) {
     return new_board;
 }
 
+// Frees memory allocated for the game board.
 void free_board(int** board) {
     for (int i = 0; i < SIZE; i++) {
         free(board[i]);
@@ -48,6 +50,7 @@ void free_board(int** board) {
     free(board);
 }
 
+// Calculates the score for a given shape.
 int score_shape(Shape shape, int color, AI ai) {
     int score = 0;
     score += shape.fives * ai.score_five;
@@ -60,13 +63,14 @@ int score_shape(Shape shape, int color, AI ai) {
     return score;
 }
 
+// Prints scores for each valid position on the board.
 void print_scores(Position* valid_pos, int* score, int valid_count) {
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
-            Position pos = pos_make(i, j);  // 假设 pos_make 创建一个位置
+            Position pos = pos_make(i, j);  // Assume pos_make creates a position
             int found = 0;
             for (int k = 0; k < valid_count; k++) {
-                if (is_pos_equal(pos, valid_pos[k])) {  // 假设 pos_equal 比较两个位置是否相等
+                if (is_pos_equal(pos, valid_pos[k])) {  // Assume pos_equal compares two positions for equality
                     printf("%d ", score[k]);
                     found = 1;
                     break;
@@ -80,6 +84,7 @@ void print_scores(Position* valid_pos, int* score, int valid_count) {
     }
 }
 
+// Evaluates scores for all valid moves.
 int* evaluate(int** board, int color, Position* valid_pos, int valid_count, AI ai) {
     Position pos;
     int* scores = (int*)malloc(sizeof(int) * valid_count);
@@ -92,6 +97,7 @@ int* evaluate(int** board, int color, Position* valid_pos, int valid_count, AI a
     return scores;
 }
 
+// Evaluates the score of a single move.
 int evaluate_move(int** board, Position pos, int color, AI ai) {
     int** board_copy = copy_board(board);
     board_copy[pos.x][pos.y] = color;
@@ -113,6 +119,7 @@ int evaluate_move(int** board, Position pos, int color, AI ai) {
     return score;
 }
 
+// Determines the best position for the AI to drop a piece.
 Position ai_drop(int** board, int color, AI ai) {
     int score;
     int max_score = -1;

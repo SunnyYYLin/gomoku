@@ -1,14 +1,14 @@
 #include "board.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 
 int **board;
 
+// Initializes the game board with memory allocation.
 void init_board(int*** board_ptr) {
     int **board_temp = (int **)malloc(SIZE * sizeof(int *));
     if (board_temp == NULL) {
-        // 无法分配内存，处理错误，例如打印错误消息并退出程序
+        // If memory allocation fails, print an error message and exit the program
         fprintf(stderr, "Memory allocation failed for board_temp.\n");
         exit(EXIT_FAILURE);
     }
@@ -16,24 +16,24 @@ void init_board(int*** board_ptr) {
     for (int i = 0; i < SIZE; i++) {
         board_temp[i] = (int *)malloc(SIZE * sizeof(int));
         if (board_temp[i] == NULL) {
-            // 无法分配内存，处理错误，释放之前已分配的内存并退出
+            // If memory allocation fails, free previously allocated memory and exit
             fprintf(stderr, "Memory allocation failed for board_temp[%d].\n", i);
             for (int j = 0; j < i; j++) {
-                free(board_temp[j]); // 释放之前分配的行
+                free(board_temp[j]); // Free previously allocated rows
             }
-            free(board_temp); // 释放行指针数组
+            free(board_temp); // Free the row pointer array
             exit(EXIT_FAILURE);
         }
 
         for (int j = 0; j < SIZE; j++) {
-            board_temp[i][j] = EMPTY; // 假设 EMPTY 已经定义
+            board_temp[i][j] = EMPTY; // Assuming EMPTY is defined
         }
     }
 
-    *board_ptr = board_temp; // 将分配好的棋盘地址赋值给外部变量
+    *board_ptr = board_temp; // Assign the address of the allocated board to the external variable
 }
 
-// Display the current state of the board
+// Displays the current state of the board.
 void print_board(int** board, Position pos_new, int turn) {
     printf("Round %d\n", turn);
 
@@ -84,6 +84,7 @@ void print_board(int** board, Position pos_new, int turn) {
     }
 }
 
+// Places a piece on the board if the position is valid.
 int drop_board(int** board, Position pos, int color) {
     if (is_valid(board, pos, 0) == 1) {
         board[pos.x][pos.y] = color;
@@ -93,26 +94,26 @@ int drop_board(int** board, Position pos, int color) {
         printf("drop_board: You can not drop at (%d, %d)!\n", pos.x, pos.y);
         return 0;
     }
-    
 }
 
+// Removes a piece from the board.
 void undo_board(int** board, Position pos) {
     board[pos.x][pos.y] = EMPTY;
 }
 
-// Boolean methods
-int is_empty (int** board, Position pos) {
+// Boolean functions to check various conditions on the board.
+int is_empty(int** board, Position pos) {
     int x = pos.x;
     int y = pos.y;
 
-    if (is_in_board(pos)&&board[x][y] == EMPTY) {
+    if (is_in_board(pos) && board[x][y] == EMPTY) {
         return 1;
     }
 
     return 0;
 }
 
-int is_color (int** board, Position pos, int color) {
+int is_color(int** board, Position pos, int color) {
     int x = pos.x;
     int y = pos.y;
 
@@ -123,7 +124,7 @@ int is_color (int** board, Position pos, int color) {
     return 0;
 }
 
-int is_center (Position pos) {
+int is_center(Position pos) {
     int x = pos.x;
     int y = pos.y;
 
@@ -134,7 +135,7 @@ int is_center (Position pos) {
     return 0;
 }
 
-int is_in_board (Position pos) {
+int is_in_board(Position pos) {
     int x = pos.x;
     int y = pos.y;
 
@@ -145,7 +146,7 @@ int is_in_board (Position pos) {
     return 0;
 }
 
-int is_on_edge (Position pos) {
+int is_on_edge(Position pos) {
     int x = pos.x;
     int y = pos.y;
 
@@ -156,7 +157,7 @@ int is_on_edge (Position pos) {
     return 0;
 }
 
-int is_on_corner (Position pos) {
+int is_on_corner(Position pos) {
     int x = pos.x;
     int y = pos.y;
 
@@ -185,8 +186,7 @@ int is_valid(int** board, Position pos, int is_silent) {
     }
 }
 
-int is_end (int** board, Position pos, Position direction, int color) {
-
+int is_end(int** board, Position pos, Position direction, int color) {
     // Close end
     if ((is_color(board, pos, color) && is_color(board, pos_move(pos, direction), -color)) // X(X)O
     || !is_in_board(pos_move(pos, direction))) { // X(X)|
@@ -197,7 +197,7 @@ int is_end (int** board, Position pos, Position direction, int color) {
     else if (is_empty(board, pos) && !is_color(board, pos_move(pos, direction), color)) { // X(_)?
         return 1;
     }
-    
+
     return 0;
 }
 
@@ -209,28 +209,26 @@ int is_pos_equal(Position pos1, Position pos2) {
     return 0;
 }
 
-// Position methods
-
-Position rev_direc (Position direction) {
+// Position manipulation functions.
+Position rev_direc(Position direction) {
     Position rev_direction = {-direction.x, -direction.y};
 
     return rev_direction;
 }
 
-Position pos_make (int x, int y) {
+Position pos_make(int x, int y) {
     Position pos = {x, y};
     return pos;
 }
 
-Position pos_move (Position pos_at, Position direction) {
-
+Position pos_move(Position pos_at, Position direction) {
     pos_at.x += direction.x;
     pos_at.y += direction.y;
 
     return pos_at;
 }
 
-Position move_to_end (int** board, Position pos_at, Position direction, int color) {
+Position move_to_end(int** board, Position pos_at, Position direction, int color) {
     while (!is_end(board, pos_at, direction, color)) {
         pos_at = pos_move(pos_at, direction);
     }
@@ -238,8 +236,9 @@ Position move_to_end (int** board, Position pos_at, Position direction, int colo
     return pos_at;
 }
 
+// Generates a list of valid positions for a given color.
 Position* valid_positions(int** board, int color, int* count) {
-    int initial_size = 10; // 初始大小
+    int initial_size = 10; // Initial size
     int capacity = initial_size;
     Position* valid_pos = (Position*)malloc(sizeof(Position) * capacity);
     if (!valid_pos) {
@@ -253,7 +252,7 @@ Position* valid_positions(int** board, int color, int* count) {
             Position pos = {i, j};
             if (is_valid(board, pos, 1) == 1) {
                 if (num_valid_pos == capacity) {
-                    capacity *= 2; // 增加容量
+                    capacity *= 2; // Increase capacity
                     Position* temp = (Position*)realloc(valid_pos, sizeof(Position) * capacity);
                     if (!temp) {
                         free(valid_pos);
@@ -267,7 +266,7 @@ Position* valid_positions(int** board, int color, int* count) {
         }
     }
 
-    // 重新调整数组大小以匹配实际数量
+    // Resize the array to match the actual number of valid positions
     Position* resized_array = (Position*)realloc(valid_pos, sizeof(Position) * num_valid_pos);
     if (resized_array != NULL) {
         valid_pos = resized_array;

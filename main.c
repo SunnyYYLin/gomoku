@@ -12,47 +12,51 @@ Player player1, player2;
 int quit;
 
 int main() {
-    srand(time(NULL));
-    
-    // Choose player set
-    player1 = init_player(BLACK);
-    player2 = init_player(WHITE);
+    srand(time(NULL));  // Seed the random number generator
 
-    ai1 = init_ai();
-    ai2 = init_ai();
+    // Initialize players
+    player1 = init_player(BLACK);  // Initialize player1 with BLACK color
+    player2 = init_player(WHITE);  // Initialize player2 with WHITE color
 
-    // Initialize
+    // Initialize AI players
+    ai1 = init_ai();  // Initialize first AI player
+    ai2 = init_ai();  // Initialize second AI player
+
+    // Main game loop
     RESTART:
-    init_game();
+    init_game();  // Initialize the game environment
 
-    // Play
-    for (turn = 0; turn < SIZE*SIZE && referee == 0; turn++) {
-        play_game();
+    // Play the game until there are no more moves or a referee decision is made
+    for (turn = 0; turn < SIZE * SIZE && referee == 0; turn++) {
+        play_game();  // Play a single turn of the game
         if (referee != 0) {
-            break;
+            break;  // Exit the loop if the game is over
         }
     }
+
+    // Display the result of the game
     game_result(turn, referee);
 
-    // Restart
+    // Restart or quit option
     char input;
-
     while (1) {
         printf("Press 'q' to quit or any other key to continue.\n");
 
-        getchar();  // 读取换行符
-        input = getchar();  // 读取一个字符
+        getchar();  // Read the newline character
+        input = getchar();  // Read a single character
 
-        // 忽略额外的字符，直到行结束
+        // Ignore extra characters until the end of the line
         while (input != '\n' && getchar() != '\n') { }
 
+        // Check if the user wants to quit
         if (input == 'q' || input == 'Q') {
-            break;  // 如果输入是'q'或'Q'，退出循环
+            break;  // Exit the loop if 'q' or 'Q' is entered
         }
 
+        // Restart the game
         goto RESTART;
     }
 
-    printf("Program exited.\n");
+    printf("Program exited.\n");  // Print a message when exiting the program
     return 0;
 }
