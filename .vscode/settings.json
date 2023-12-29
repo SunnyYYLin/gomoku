@@ -1,7 +1,8 @@
 {
     "files.associations": {
-        "chess.h": "c",
-        "global.h": "c",
-        "game.h": "c"
+        "ai.h": "c",
+        "shape.h": "c",
+        "game.h": "c",
+        "board.h": "c"
     }
 }

@@ -3,8 +3,14 @@
 
 #include "board.h"
 #include "shape.h"
+#include "game.h"
+#include <limits.h>
 
 extern int** board;
+
+#define INFINITY 10000
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define max(a, b) ((a) > (b) ? (a) : (b))
 
 // Struct defining the AI with scores for different shapes.
 typedef struct {
@@ -38,10 +44,13 @@ int* evaluate(int** board, int color, Position* valid_pos, int valid_count, AI a
 // Evaluates the score of a single move.
 int evaluate_move(int** board, Position pos, int color, AI ai);
 
+// Evaluates the score of a single line of pieces.
+int evaluate_board(Position* valid_pos, int* scores, int valid_count);
+
+// Evaluates the score of a single line of pieces in a given direction.
+int minimax(int** board, Position pos, int depth, int alpha, int beta, int color, AI ai, int isMaximizing);
+
 // Determines the best position for the AI to make a move.
 Position ai_drop(int** board, int color, AI ai);
-
-// Placeholder for a function to train the AI.
-void ai_train();
 
 #endif /* AI_H */

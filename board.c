@@ -33,6 +33,37 @@ void init_board(int*** board_ptr) {
     *board_ptr = board_temp; // Assign the address of the allocated board to the external variable
 }
 
+// Creates a deep copy of the game board.
+int** copy_board(int** board) {
+    int** new_board = malloc(SIZE * sizeof(int*));
+    if (new_board == NULL) {
+        // Memory allocation failed
+        return NULL;
+    }
+
+    for (int i = 0; i < SIZE; i++) {
+        new_board[i] = malloc(SIZE * sizeof(int));
+        if (new_board[i] == NULL) {
+            // Memory allocation failed, free previously allocated memory
+            for (int j = 0; j < i; j++) {
+                free(new_board[j]);
+            }
+            free(new_board);
+            return NULL;
+        }
+        memcpy(new_board[i], board[i], SIZE * sizeof(int));
+    }
+    return new_board;
+}
+
+// Frees memory allocated for the game board.
+void free_board(int** board) {
+    for (int i = 0; i < SIZE; i++) {
+        free(board[i]);
+    }
+    free(board);
+}
+
 // Displays the current state of the board.
 void print_board(int** board, Position pos_new, int turn) {
     printf("Round %d\n", turn);

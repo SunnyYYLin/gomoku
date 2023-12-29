@@ -18,6 +18,12 @@ typedef struct {
 // Initializes the game board with memory allocation
 void init_board(int*** board);
 
+// Creates a deep copy of the game board
+int** copy_board(int** board);
+
+// Frees memory allocated for the game board
+void free_board(int** board);
+
 // Displays the current state of the board
 void print_board(int** board, Position pos_new, int turn);
 
