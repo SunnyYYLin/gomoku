@@ -3,10 +3,10 @@
 #include <time.h>
 #include "board.h"
 #include "game.h"
-#include "ai.h"
+#include "score.h"
 
 // Global variables
-extern AI ai1, ai2;
+extern Strategy stg1, stg2;
 extern int referee;
 Player player1, player2;
 int quit;
@@ -19,8 +19,8 @@ int main() {
     player2 = init_player(WHITE);  // Initialize player2 with WHITE color
 
     // Initialize AI players
-    ai1 = init_ai();  // Initialize first AI player
-    ai2 = init_ai();  // Initialize second AI player
+    stg1 = init_stg();  // Initialize first AI player
+    stg2 = init_stg();  // Initialize second AI player
 
     // Main game loop
     RESTART:

@@ -3,6 +3,7 @@
         "ai.h": "c",
         "shape.h": "c",
         "game.h": "c",
-        "board.h": "c"
+        "board.h": "c",
+        "score.h": "c"
     }
 }

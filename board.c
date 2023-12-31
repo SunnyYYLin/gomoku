@@ -1,6 +1,7 @@
 #include "board.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int **board;
 
@@ -217,15 +218,19 @@ int is_valid(int** board, Position pos, int is_silent) {
     }
 }
 
-int is_end(int** board, Position pos, Position direction, int color) {
-    // Close end
-    if ((is_color(board, pos, color) && is_color(board, pos_move(pos, direction), -color)) // X(X)O
-    || !is_in_board(pos_move(pos, direction))) { // X(X)|
+// Close end
+int is_cut(int** board, Position pos, Position direction, int color) {
+    if (is_color(board, pos_move(pos, direction), -color) // X(?)O
+    || !is_in_board(pos_move(pos, direction))) { // X(?)|
         return 1;
     }
 
-    // Open end
-    else if (is_empty(board, pos) && !is_color(board, pos_move(pos, direction), color)) { // X(_)?
+    return 0;
+}
+
+// Broken end, Open end
+int is_broken(int** board, Position pos, Position direction, int color) {
+    if (is_empty(board, pos) && !is_color(board, pos_move(pos, direction), color)) { // X(_)?, ?=_, O
         return 1;
     }
 
@@ -260,7 +265,7 @@ Position pos_move(Position pos_at, Position direction) {
 }
 
 Position move_to_end(int** board, Position pos_at, Position direction, int color) {
-    while (!is_end(board, pos_at, direction, color)) {
+    while (!is_cut(board, pos_at, direction, color)) {
         pos_at = pos_move(pos_at, direction);
     }
 
@@ -269,40 +274,24 @@ Position move_to_end(int** board, Position pos_at, Position direction, int color
 
 // Generates a list of valid positions for a given color.
 Position* valid_positions(int** board, int color, int* count) {
-    int initial_size = 10; // Initial size
-    int capacity = initial_size;
-    Position* valid_pos = (Position*)malloc(sizeof(Position) * capacity);
-    if (!valid_pos) {
-        *count = 0;
-        return NULL;
-    }
+    *count = 0;
+    Position* valid_pos_temp = malloc(sizeof(Position)*SIZE*SIZE);
 
-    int num_valid_pos = 0;
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             Position pos = {i, j};
             if (is_valid(board, pos, 1) == 1) {
-                if (num_valid_pos == capacity) {
-                    capacity *= 2; // Increase capacity
-                    Position* temp = (Position*)realloc(valid_pos, sizeof(Position) * capacity);
-                    if (!temp) {
-                        free(valid_pos);
-                        *count = 0;
-                        return NULL;
-                    }
-                    valid_pos = temp;
-                }
-                valid_pos[num_valid_pos++] = pos;
+                valid_pos_temp[*count] = pos;
+                (*count) ++;
             }
         }
     }
 
     // Resize the array to match the actual number of valid positions
-    Position* resized_array = (Position*)realloc(valid_pos, sizeof(Position) * num_valid_pos);
-    if (resized_array != NULL) {
-        valid_pos = resized_array;
+    Position* valid_pos = malloc(sizeof(Position)*(*count));
+    for (int j=0; j<*count; j++) {
+        valid_pos[j] = valid_pos_temp[j];
     }
 
-    *count = num_valid_pos;
     return valid_pos;
 }

@@ -12,7 +12,7 @@ extern Player player1, player2;  // Declaration of two players
 
 #include "shape.h"
 #include "board.h"
-#include "ai.h"
+#include "search.h"
 
 // Function declarations
 

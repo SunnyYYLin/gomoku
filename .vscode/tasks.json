@@ -10,13 +10,30 @@
                 "board.c",
                 "shape.c",
                 "game.c", 
-                "ai.c",
+                "search.c",
+                "score.c",
                 // "test.c",
                 // "ai.c",
                 // "genann.c",
                 "-o",
-                "main.exe"
+                "main.exe",
+                // "test.exe"
             ],
+            // "args": [
+            //     "-g",
+            //     // "main.c",
+            //     "board.c",
+            //     "shape.c",
+            //     // "game.c", 
+            //     // "search.c",
+            //     // "score.c",
+            //     "test.c",
+            //     // "ai.c",
+            //     // "genann.c",
+            //     "-o",
+            //     // "main.exe",
+            //     "test.exe"
+            // ],
             "options": {
                 "cwd": "${fileDirname}"
             },

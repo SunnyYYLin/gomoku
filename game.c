@@ -5,7 +5,7 @@
 
 extern Player player1, player2;
 extern int **board;
-extern AI ai1, ai2;
+extern Strategy stg1, stg2;
 static const char* colorText[3] = {"White", "Empty", "Black"};
 static const char* playerType[3] = {"Human", "Random", "AI"};
 static Position pos_new;
@@ -55,20 +55,13 @@ void init_game() {
 
 // Main game loop.
 void play_game() {
-    if (turn == 0) {
-        system("cls");
-        print_board(board, pos_new, turn);
-    }
-
-    if (turn % 2 == 0) {
-        player_drop(player1);
-        referee = game_referee(board, pos_new, player1.color);
-    } else {
-        player_drop(player2);
-        referee = game_referee(board, pos_new, player2.color);
-    }
     system("cls");
     print_board(board, pos_new, turn);
+    Player player = (turn % 2 == 0) ? player1 : player2;
+    player_drop(player);
+    system("cls");
+    print_board(board, pos_new, turn);
+    referee = game_referee(board, pos_new, player.color);
 }
 
 // Handles a player's move.
@@ -83,10 +76,10 @@ void player_drop(Player player) {
                 pos_new = random_drop(player);
                 break;
             case 2:
-                pos_new = ai_drop(board, player.color, ai1);
+                pos_new = ai_drop(board, player.color, stg1);
                 break;
             case 3:
-                pos_new = ai_drop(board, player.color, ai2);
+                pos_new = ai_drop(board, player.color, stg2);
                 break;
             default:
                 printf("Invalid player type!\n");
@@ -139,8 +132,14 @@ Position random_drop(Player player) {
 
 // Determines the game result based on the current board state.
 int game_referee(int** board, Position pos, int color) {
+    undo_board(board, pos);
     Shape* shapes = enroll_lines(board, pos, color);
+    Shape init_sum_shape = sum_lines(shapes);
+    drop_board(board, pos, color);
+    shapes = enroll_lines(board, pos, color);
     Shape sum_shape = sum_lines(shapes);
+    sum_shape = steply_shape(sum_shape, init_sum_shape);
+    print_shape(sum_shape);
     if (is_win(sum_shape)) {
         return -1;  // Win condition
     }
@@ -154,11 +153,13 @@ int game_referee(int** board, Position pos, int color) {
 
 // Displays the game result.
 void game_result(int turn, int referee) {
+    int color = -2*(turn%2-1)-1;
+    print_board(board, pos_new, turn);
     if (referee == 0) {
         printf("It's a draw! Game over.\n");
     }
     else if (referee == -1) {
-        printf("%s wins! Game over.\n", colorText[-2*(turn%2-1)]);
+        printf("%s wins! Game over.\n", colorText[color+1]);
     }
     else if (referee == 1) {
         printf("Black had a forbidden move! Game over.\n");
