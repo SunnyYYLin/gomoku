@@ -34,7 +34,9 @@ int main() {
         printf("Please type in filename to read game from: ");
         scanf(" %99s", filename);
         printf("Loading game from %s...\n", filename);
-        load_game();
+        if (!load_game()) {
+            goto RESTART;
+        }
     } 
     else if (input == 'n') {
         init_game();

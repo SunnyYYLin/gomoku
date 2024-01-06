@@ -54,11 +54,9 @@ void init_game() {
 
 // Main game loop.
 void play_game() {
-    system("cls");
     print_board(board, pos_new, turn);
     Player player = player_drop();
     system("cls");
-    print_board(board, pos_new, turn);
     referee = game_referee(board, pos_new, player.color);
     record_step();
 }
@@ -143,7 +141,8 @@ Position random_drop(Player player) {
 int game_referee(int** board, Position pos, int color) {
     Shape* shapes = enroll_lines(board, pos, color);
     Shape sum_shape = sum_lines(shapes);
-    // print_shape(sum_shape);
+    print_shape(sum_shape);
+    getchar();
     if (is_win(sum_shape)) {
         return -1;  // Win condition
     }
@@ -188,11 +187,11 @@ void record_step() {
     fclose(file);
 }
 
-void load_game() {
+int load_game() {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         perror("Error opening file");
-        return;
+        return 0;
     }
 
     int x, y = 0;
@@ -209,4 +208,5 @@ void load_game() {
 
     fclose(file);
     system("chcp 65001");  // Set character encoding to UTF-8
+    return 1;
 }

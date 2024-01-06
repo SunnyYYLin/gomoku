@@ -56,6 +56,6 @@ void generate_filename(char *buffer, size_t buffer_size);
 
 void record_step();
 
-void load_game();
+int load_game();
 
 #endif // GAME_H

@@ -61,7 +61,7 @@ int main() {
     int color = BLACK;
     int** board;
     init_board(&board);
-    test7(board);
+    test6(board);
     Position pos = {7, 7};
     print_board(board, pos, 2);
     enroll_lines(board, pos, color);

@@ -11,11 +11,11 @@ Strategy init_stg() {
     Strategy stg;
 
     // score for white
-    stg.white_score_longs = 1000;
-    stg.white_score_five = 1000;
+    stg.white_score_longs = 2000;
+    stg.white_score_five = 2000;
     stg.white_score_open_four = 1000;
     stg.white_score_broken_four = 400;
-    stg.white_score_open_three = 400;
+    stg.white_score_open_three = 500;
     stg.white_score_jump_three = 250;
     stg.white_score_broken_three = 250;
     stg.white_score_open_two = 120;
@@ -24,10 +24,10 @@ Strategy init_stg() {
 
     // score for black
     stg.black_score_longs = 0;
-    stg.black_score_five = 1000;
+    stg.black_score_five = 2000;
     stg.black_score_open_four = 1000;
     stg.black_score_broken_four = 400;
-    stg.black_score_open_three = 400;
+    stg.black_score_open_three = 500;
     stg.black_score_jump_three = 250;
     stg.black_score_broken_three = 250;
     stg.black_score_open_two = 120;

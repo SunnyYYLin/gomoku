@@ -7,8 +7,8 @@
 #include "score.h"
 #include <limits.h>
 
-#define DEPTH 5
-#define RATIO 0.6
+#define DEPTH 3
+#define RATIO 0.8
 #define DAMP 0.4
 
 extern int** board;
