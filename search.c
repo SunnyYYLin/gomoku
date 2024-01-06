@@ -4,75 +4,78 @@
 #include <string.h>
 #include <limits.h>
 
-double minimax(int** board, Position pos, int depth, int alpha, int beta, int color, Strategy stg, int isMaximizing) {
-    int valid_count;
-    Position* valid_pos = valid_positions(board, color, &valid_count);
-    PosScore* pos_scores = evaluate_all(board, color, valid_pos, valid_count, stg);
-    // print_scores(pos_scores, valid_count);
+int minimax(int** board, Position pos, int depth, int alpha, int beta, int color, Strategy stg, int isMaximizing) {
+    drop_board_f(board, pos, color);
 
-    int mostval_count;
-    PosScore* mostval_pos = mostval_positions(pos_scores, valid_count, stg, 4, &mostval_count);
+    int valid_size, mostval_size;
+    Position* valid_pos = valid_positions(board, -color, &valid_size);
+    PosScore* posSc = all_posScores(board, -color, valid_pos, valid_size, stg);
+    free(valid_pos);
+    PosScore* mostval_posSc = mostval_posScores(posSc, valid_size, &mostval_size, RATIO);
+    free(posSc);
 
-    if (depth == 0 || game_referee(board, pos, color) || valid_count == 0) {
-        double board_score = maxval_position(pos_scores, valid_count).score;
-        free(pos_scores);
-        free(valid_pos);
-        return board_score;
+    if (depth == 0 || valid_size == 0) {
+        int maxval = (valid_size == 0) ? 0 : mostval_posSc[0].score;
+        free(mostval_posSc);
+        undo_board(board, pos);
+        return maxval;
     }
 
-    double maxEval = -INFINITY;
-    double minEval = INFINITY;
-    double eval;
-    for (int i = 0; i < mostval_count; i++) {
-        int** new_board = copy_board(board);
-        // print_board(new_board, mostval_pos[i].pos, 0);
-        drop_board(new_board, pos_scores[i].pos, color);
-        eval = minimax(new_board, pos_scores[i].pos, depth - 1, alpha, beta, -color, stg, !isMaximizing);
-        
+    int value = isMaximizing ? -INFINITY : INFINITY;
+    for (int i = 0; i < mostval_size; i++) {
+        mostval_posSc[i].score -= (int)(DAMP*minimax(board, mostval_posSc[i].pos, depth - 1, alpha, beta, -color, stg, !isMaximizing));
+        int eval = mostval_posSc[i].score;
+
         if (isMaximizing) {
-            maxEval = max(maxEval, eval);
+            value = max(value, eval);
             alpha = max(alpha, eval);
-        } 
-        else {
-            maxEval = min(minEval, eval);
+        } else {
+            value = min(value, eval);
             beta = min(beta, eval);
         }
 
-        free_board(new_board);
-        if (beta <= alpha) break;
+        if (beta <= alpha) {
+            // printf("pruning\n");
+            break;
+        }
     }
-    return maxEval;
+
+    free(mostval_posSc);
+    undo_board(board, pos);
+    return value;
+}
+
+int get_depth(int turn) {
+    if (turn<3) {
+        return 0;
+    }
+    else {
+        int k = turn - 3;
+        return (k<2*DEPTH) ? k/2 : DEPTH;
+    }
 }
 
 // Determines the best position for the stg to drop a piece.
 Position ai_drop(int** board, int color, Strategy stg) {
-    int max_score = -INFINITY;
-    Position best_move;
-    int valid_count, mostval_count;
-    Position* valid_pos = valid_positions(board, color, &valid_count);
-    PosScore* pos_scores = evaluate_all(board, color, valid_pos, valid_count, stg);
-    PosScore* mostval_pos = mostval_positions(pos_scores, valid_count, stg, 5, &mostval_count);
+    int valid_size, mostval_size;
+    Position* valid_pos = valid_positions(board, color, &valid_size);
+    PosScore* posSc = all_posScores(board, color, valid_pos, valid_size, stg);
+    free(valid_pos);
+    PosScore* mostval_posSc = mostval_posScores(posSc, valid_size, &mostval_size, RATIO);
+    free(posSc);
 
-    for (int i = 0; i < mostval_count; i++) {
-        int** new_board = copy_board(board);
-        drop_board(new_board, mostval_pos[i].pos, color);
-        double score = minimax(new_board, mostval_pos[i].pos, 3, -INFINITY, INFINITY, -color, stg, 0);
-        
-        if (score > max_score) {
-            max_score = score;
-            best_move = mostval_pos[i].pos;
-        }
-
-        free_board(new_board);
+    for (int i = 0; i < mostval_size; i++) {
+        mostval_posSc[i].score -= (int)(DAMP*minimax(board, mostval_posSc[i].pos, get_depth(turn), -INFINITY, INFINITY, color, stg, 0));
     }
-
+    sort_posScores(mostval_posSc, mostval_size);
+    Position best_move = mostval_posSc[0].pos;
+    
+    // print_scores(mostval_posSc, mostval_size);
     // for (int i = 0; i<mostval_count; i++) {
     //     printf("mostval_pos[%d]: %d, %d, %f\n", i, mostval_pos[i].pos.x, mostval_pos[i].pos.y, mostval_pos[i].score);
     // }
-
-    // best_move = mostval_pos[0].pos;
-
-    free(pos_scores);
-    free(valid_pos);
+    // getchar();
+    
+    free(mostval_posSc);
     return best_move;
 }

@@ -69,12 +69,7 @@ void free_board(int** board) {
 void print_board(int** board, Position pos_new, int turn) {
     printf("Round %d\n", turn);
 
-    // Print column headers
-    printf("  ");
-    for (int i = 0; i < SIZE; i++) {
-        printf("%c ", 'A' + i);
-    }
-    printf("\n");
+    printf("Last move: %c%d\n", 'A' + pos_new.y, pos_new.x + 1);
 
     // Print each row of the board
     for (int i = 0; i < SIZE; i++) {
@@ -114,6 +109,13 @@ void print_board(int** board, Position pos_new, int turn) {
         }
         printf("\n");
     }
+
+    // Print column headers
+    printf("  ");
+    for (int i = 0; i < SIZE; i++) {
+        printf("%c ", 'A' + i);
+    }
+    printf("\n");
 }
 
 // Places a piece on the board if the position is valid.
@@ -126,6 +128,12 @@ int drop_board(int** board, Position pos, int color) {
         printf("drop_board: You can not drop at (%d, %d)!\n", pos.x, pos.y);
         return 0;
     }
+}
+
+// Places a piece on the board without checking validity.
+int drop_board_f(int** board, Position pos, int color) {
+    board[pos.x][pos.y] = color;
+    return 1;
 }
 
 // Removes a piece from the board.
@@ -264,18 +272,10 @@ Position pos_move(Position pos_at, Position direction) {
     return pos_at;
 }
 
-Position move_to_end(int** board, Position pos_at, Position direction, int color) {
-    while (!is_cut(board, pos_at, direction, color)) {
-        pos_at = pos_move(pos_at, direction);
-    }
-
-    return pos_at;
-}
-
 // Generates a list of valid positions for a given color.
 Position* valid_positions(int** board, int color, int* count) {
     *count = 0;
-    Position* valid_pos_temp = malloc(sizeof(Position)*SIZE*SIZE);
+    Position valid_pos_temp[SIZE*SIZE];
 
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
@@ -289,9 +289,7 @@ Position* valid_positions(int** board, int color, int* count) {
 
     // Resize the array to match the actual number of valid positions
     Position* valid_pos = malloc(sizeof(Position)*(*count));
-    for (int j=0; j<*count; j++) {
-        valid_pos[j] = valid_pos_temp[j];
-    }
+    memcpy(valid_pos, valid_pos_temp, sizeof(Position)*(*count));
 
     return valid_pos;
 }

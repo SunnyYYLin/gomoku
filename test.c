@@ -7,7 +7,6 @@ void test1(int** board) {
     board[7][7] = BLACK;
     board[7][8] = BLACK;
     board[7][9] = BLACK;
-    board[7][10] = BLACK;
 }
 
 void test2(int** board) {
@@ -62,20 +61,13 @@ int main() {
     int color = BLACK;
     int** board;
     init_board(&board);
-    test4(board);
-    Position pos = {7, 8};
+    test7(board);
+    Position pos = {7, 7};
     print_board(board, pos, 2);
     enroll_lines(board, pos, color);
-    undo_board(board, pos);
     Shape* shapes = enroll_lines(board, pos, color);
-    Shape init_sum_shape = sum_lines(shapes);
-    print_shape(init_sum_shape);
-    drop_board(board, pos, color);
-    shapes = enroll_lines(board, pos, color);
     Shape sum_shape = sum_lines(shapes);
-    print_shape(sum_shape);
-    sum_shape = steply_shape(sum_shape, init_sum_shape);
     print_shape(sum_shape);
     getchar();
     return 0;
-}
+} 

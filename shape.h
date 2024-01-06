@@ -6,7 +6,11 @@
 #define SEG_END -2 // The end mark of line.seg[]
 
 #ifndef STG_SIZE
-#define STG_SIZE 11
+#define STG_SIZE 10
+#endif
+
+#ifndef SEG_GAP
+#define SEG_GAP 2
 #endif
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -26,7 +30,6 @@ typedef struct {
             int open_twos;      // Number of open twos (two consecutive pieces with open ends)
             int jump_twos;      // Number of jump twos (two unconsecutive pieces with open ends)
             int djump_twos;     // Number of double jump twos (two distantly unconsecutive pieces with both ends open)
-            int broken_twos;    // Number of broken twos (two consecutive pieces but not open on both ends)
         };
         int arr[STG_SIZE];           // Array of shape counts
     };
@@ -37,6 +40,7 @@ typedef struct {
     int len;            // Length of the line
     int segs[SIZE];     // Segments in the line
     Shape shape;        // The shape formed by the line
+    int is_open;
 } Line;
 
 // Function declarations
@@ -60,8 +64,11 @@ Line get_line(int** board, int color, Position pos_at, Position direction);
 Line num_fives_and_longs(Line line);
 Line num_open_fours(Line line);
 Line num_broken_fours(Line line);
-Line num_open_threes(Line line, int* open_threes_to_open_fours);
+Line num_open_threes(Line line);
 Line num_broken_threes(Line line);
+Line num_open_twos(Line line);
+Line num_jump_twos(Line line);
+Line num_djump_twos(Line line);
 
 // Determine the shape of a line
 Line line_shape(Line line);
@@ -71,8 +78,6 @@ Shape* enroll_lines(int** board, Position pos, int color);
 
 // Sum up shapes from multiple lines
 Shape sum_lines(Shape* shapes);
-
-Shape steply_shape(Shape shape, Shape init_shape);
 
 // Determine if a shape is forbidden according to game rules
 int is_forbidden(Shape shape, int color);

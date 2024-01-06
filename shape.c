@@ -7,25 +7,19 @@ static const Position directions[4] = {{0, 1}, {-1, 1}, {-1, 0}, {-1, -1}};
 
 // Prints a shape
 void print_shape(Shape shape) {
-    printf("Shape: %d longs, %d fives, %d open fours, %d broken fours, \n%d open threes, %d jump threes, %d broken threes, \n%d open twos, %d jump twos, %d djump twos, %d broken twos\n", 
-    shape.longs, shape.fives, shape.open_fours, shape.broken_fours, shape.open_threes, shape.jump_threes, shape.broken_threes, shape.open_twos, shape.jump_twos, shape.djump_twos, shape.broken_twos);
+    printf("Shape: %d longs, %d fives, %d open fours, %d broken fours, \n%d open threes, %d jump threes, %d broken threes, \n%d open twos, %d jump twos, %d djump twos\n", 
+    shape.longs, shape.fives, shape.open_fours, shape.broken_fours, shape.open_threes, shape.jump_threes, shape.broken_threes, shape.open_twos, shape.jump_twos, shape.djump_twos);
 }
 
 // Creates an empty shape struct
 Shape empty_shape() {
     Shape shape;
+
     // Initializing all shape attributes to zero
-    shape.fives = 0;
-    shape.longs = 0;
-    shape.open_fours = 0;
-    shape.broken_fours = 0;
-    shape.open_threes = 0;
-    shape.jump_threes = 0;
-    shape.broken_threes = 0;
-    shape.open_twos = 0;
-    shape.jump_twos = 0;
-    shape.djump_twos = 0;
-    shape.broken_twos = 0;
+    for (int i=0; i<STG_SIZE; i++) {
+        shape.arr[i] = 0;
+    }
+
     return shape;
 }
 
@@ -34,6 +28,7 @@ Line empty_line() {
     Line line;
     // Initializing line attributes, including setting its shape to empty
     line.len = 0;
+    line.is_open = 1;
     for (int i = 0; i < SIZE; i++) {
         line.segs[i] = 0;
     }
@@ -54,21 +49,53 @@ int fill_segs(int** board, Position pos_at, int color) {
     return value;
 }
 
+// Moves a Position to the end of a line of pieces
+Position move_to_end(int** board, Position pos_at, Position direction, int color) {
+    int empty_count = 0;
+
+    // OO_ _ _ _ (_); OOO(X); OOO(|)
+    while (empty_count<SEG_GAP && !is_color(board, pos_at, -color) && is_in_board(pos_at)) {
+        if (is_empty(board, pos_at)) {
+            empty_count ++;
+        }
+        else {
+            empty_count = 0;
+        }
+        pos_at = pos_move(pos_at, direction);
+    }
+
+    return pos_at;
+}
+
 // Retrieves a line of pieces from the board
 Line get_line(int** board, int color, Position pos_at, Position direction) {
     Line line = empty_line(); // Start with an empty line
     int i = 0;
+    int empty_count = 0;
+    if (!is_empty(board, pos_at)) {
+        line.is_open = 0;
+    }
+    pos_at = pos_move(pos_at, direction); // _(_)_ _ _ OO; X(O)OO; |(O)OO
 
     // Iterate until the end of the line is reached
-    do {
+    // OO_ _ _ _ (_); OOO(X); OOO(|)
+    while (empty_count<=SEG_GAP && !is_color(board, pos_at, -color) && is_in_board(pos_at)) {
+        if (is_empty(board, pos_at)) {
+            empty_count ++;
+        }
+        else {
+            empty_count = 0;
+        }
         line.segs[i] = fill_segs(board, pos_at, color);
-        i++;
         pos_at = pos_move(pos_at, direction);
-    } while (!is_cut(board, pos_at, direction, color));
+        i ++;
+    }
+   
+    if (!is_empty(board, pos_at)) {
+        line.is_open = 0;
+    }
 
-    line.segs[i] = fill_segs(board, pos_at, color);
-
-    line.len = i + 1; // Length of the line
+    line.len = i; // Length of the line
 
     return line;
 }
@@ -163,14 +190,14 @@ Line num_broken_fours(Line line) {
     }
     while (i<=line.len);
 
-    line.shape.broken_fours = max(num_to_be_five - 2*line.shape.open_fours, 0);
+    line.shape.broken_fours = num_to_be_five - 2*line.shape.open_fours;
 
     return line;
 }
 
 // __OOO__
-Line num_open_threes(Line line, int* to_be_open_fours) {
-    int open_count = *to_be_open_fours;
+Line num_open_threes(Line line) {
+    int open_count = 0;
     int is_in_seg = 0;
     int count = 0;
     int i = 0;
@@ -189,7 +216,6 @@ Line num_open_threes(Line line, int* to_be_open_fours) {
             }
             if (count == 3 && open_count >= 3) {
                 open_threes ++;
-                *to_be_open_fours = open_count;
             }
             open_count = 0;
             is_in_seg = 0;
@@ -218,9 +244,6 @@ Line num_jump_threes(Line line) {
     int num_to_be_open_fours = 0;
     int count = 0;
     int i = 0;
-    int open_threes_to_open_fours = 0;
-    line = num_open_fours(line);
-    line = num_open_threes(line, &open_threes_to_open_fours);
 
     do {
         if (line.segs[i] == 0) {
@@ -233,51 +256,35 @@ Line num_jump_threes(Line line) {
     }
     while (i<=line.len);
 
-    line.shape.jump_threes = max(num_to_be_open_fours - (open_threes_to_open_fours-2)* line.shape.open_threes, 0);
+    line.shape.jump_threes = max(num_to_be_open_fours - 2*line.shape.open_threes, 0);
 
     return line;
 }
 
 Line num_broken_threes(Line line) {
-    int num_to_be_broken_fours_r = 0;
-    int num_to_be_broken_fours_l = 0;
+    int num_to_be_broken_fours = 0;
     int i = 0;
     int temp;
-    line = num_broken_fours(line);
-    line = num_open_threes(line, &temp);
-    line = num_jump_threes(line);
 
     do {
-        if (line.segs[i] == 0 && line.segs[i+1] == 1) {
+        if (line.segs[i] == 0) {
             Line test_line = line;
             test_line.segs[i] = 1;
             test_line = num_broken_fours(test_line);
-            num_to_be_broken_fours_r += max(test_line.shape.broken_fours - line.shape.broken_fours, 0);
+            num_to_be_broken_fours += max(test_line.shape.broken_fours - line.shape.broken_fours, 0);
         }
         i ++;
     }
     while (i<=line.len);
 
-    do {
-        if (line.segs[i] == 0 && line.segs[i-1] == 1) {
-            Line test_line = line;
-            test_line.segs[i] = 1;
-            test_line = num_broken_fours(test_line);
-            num_to_be_broken_fours_l += max(test_line.shape.broken_fours - line.shape.broken_fours, 0);
-        }
-        i --;
-    }
-    while (i>=0);
-
-    int num_to_be_broken_fours = max(num_to_be_broken_fours_r, num_to_be_broken_fours_l);
-
-    line.shape.broken_threes = max(num_to_be_broken_fours/2 - (line.shape.open_threes+line.shape.jump_threes), 0);
+    line.shape.broken_threes = max(num_to_be_broken_fours/2-(line.shape.open_threes+line.shape.jump_threes), 0);
 
     return line;
 }
 
 Line num_open_twos(Line line) {
-    int is_seg_start_open = 0, is_seg_end_open = 0, is_in_seg = 0;
+    int is_in_seg = 0;
+    int open_count = 0;
     int count = 0;
     int i = 0;
     int open_twos = 0;
@@ -287,20 +294,31 @@ Line num_open_twos(Line line) {
             count ++;
         }
         else if (is_in_seg && line.segs[i] != 1) {
-            if ((i<line.len && line.segs[i] == 0) && (i+1<line.len && line.segs[i+1] == 0) && (i+2<line.len && line.segs[i+2] == 0)) {
-                is_seg_end_open = 1;
+            if (i < line.len && line.segs[i] == 0) {
+                open_count ++;
+                if (i+1 < line.len && line.segs[i+1] == 0) {
+                    open_count ++;
+                    if (i+2 < line.len && line.segs[i+2] == 0) {
+                        open_count ++;
+                    }
+                }
             }
-            if (count == 2 && is_seg_start_open && is_seg_end_open) {
+            if (count == 2 && open_count >= 4) {
                 open_twos ++;
             }
-            is_seg_start_open = 0;
-            is_seg_end_open = 0;
+            open_count = 0;
             is_in_seg = 0;
             count = 0;
         }
         else if (!is_in_seg && line.segs[i] == 1) {
-            if (i-1 >= 0 && line.segs[i-1] == 0 && (i-2 >= 0 && line.segs[i-2] == 0) && (i-3>=0 && line.segs[i-3] == 0)) {
-                is_seg_start_open = 1;
+            if (i-1 >= 0 && line.segs[i-1] == 0) {
+                open_count ++;
+                if (i-2>=0 && line.segs[i-2] == 0) {
+                    open_count ++;
+                    if (i-3>=0 && line.segs[i-3] == 0) {
+                        open_count ++;
+                    }
+                }
             }
             is_in_seg = 1;
             count ++;
@@ -318,14 +336,14 @@ Line num_jump_twos(Line line) {
     int num_to_be_open_threes = 0;
     int i = 0;
     int temp;
-    line = num_open_threes(line, &temp);
+    line = num_open_threes(line);
     line = num_open_twos(line);
 
     do {
         if (line.segs[i] == 0 && line.segs[i+1] == 1) {
             Line test_line = line;
             test_line.segs[i] = 1;
-            test_line = num_open_threes(test_line, &temp);
+            test_line = num_open_threes(test_line);
             num_to_be_open_threes += max(test_line.shape.open_threes - line.shape.open_threes, 0);
         }
         i++;
@@ -341,7 +359,7 @@ Line num_djump_twos(Line line) {
     int num_to_be_jump_threes = 0;
     int i = 0;
     int temp;
-    line = num_jump_threes(line);
+    line = num_open_threes(line);
     line = num_open_twos(line);
     line = num_jump_twos(line);
 
@@ -349,52 +367,70 @@ Line num_djump_twos(Line line) {
         if (line.segs[i] == 0 && line.segs[i+1] == 1) {
             Line test_line = line;
             test_line.segs[i] = 1;
-            test_line = num_open_threes(test_line, &temp);
+            test_line = num_open_threes(test_line);
             num_to_be_jump_threes += max(test_line.shape.open_threes - line.shape.open_threes, 0);
         }
         i++;
     }
     while (i<=line.len);
 
-    line.shape.djump_twos = max(num_to_be_jump_threes - 2*line.shape.jump_twos, 0);
+    line.shape.djump_twos = max(num_to_be_jump_threes - 2*(line.shape.open_twos+line.shape.jump_twos), 0);
 
     return line;
 }
 
-Line num_broken_twos(Line line) {
-    int i = 0;
-    int num_to_be_broken_threes = 0;
-    line = num_broken_threes(line);
-    line = num_open_twos(line);
-    line = num_jump_twos(line);
-    line = num_djump_twos(line);
+// Line num_broken_twos(Line line) {
+//     int i = 0;
+//     int num_to_be_broken_threes = 0;
+//     line = num_broken_threes(line);
+//     line = num_open_twos(line);
+//     line = num_jump_twos(line);
+//     line = num_djump_twos(line);
 
-    do {
-        if (line.segs[i] == 0) {
-            Line test_line = line;
-            test_line.segs[i] = 1;
-            test_line = num_broken_threes(test_line);
-            num_to_be_broken_threes += max(test_line.shape.broken_threes - line.shape.broken_threes, 0);
-        }
-        i ++;
-    }
-    while (i<=line.len);
+//     do {
+//         if (line.segs[i] == 0) {
+//             Line test_line = line;
+//             test_line.segs[i] = 1;
+//             test_line = num_broken_threes(test_line);
+//             num_to_be_broken_threes += max(test_line.shape.broken_threes - line.shape.broken_threes, 0);
+//         }
+//         i ++;
+//     }
+//     while (i<=line.len);
 
-    line.shape.broken_twos = max(min(num_to_be_broken_threes,1), max(num_to_be_broken_threes/6 - 2*(line.shape.open_twos+line.shape.jump_twos+line.shape.djump_twos), 0));
+//     line.shape.broken_twos = max(min(num_to_be_broken_threes,1), max(num_to_be_broken_threes/6 - 2*(line.shape.open_twos+line.shape.jump_twos+line.shape.djump_twos), 0));
 
-    return line;
-}
+//     return line;
+// }
 
 Line line_shape(Line line) {
-    int temp;
-    line = num_fives_and_longs(line);
-    line = num_open_fours(line);
-    line = num_broken_fours(line);
-    line = num_open_threes(line, &temp);
-    line = num_broken_threes(line);
-    line = num_open_twos(line);
-    line = num_broken_twos(line);
-    
+    if (line.len >= 5) {
+        line = num_fives_and_longs(line);
+        // if (line.is_open) {
+        //     line = num_open_fours(line);
+        //     line = num_open_threes(line);
+        //     line = num_jump_threes(line);
+        //     line = num_broken_threes(line);
+        //     line = num_open_twos(line);
+        //     line = num_jump_twos(line);
+        //     line = num_djump_twos(line);
+        //     line = num_broken_twos(line);
+        // }
+        // else {
+        //     line = num_broken_fours(line);
+        //     line = num_broken_threes(line);
+        //     line = num_broken_twos(line);
+        // }
+        line = num_open_fours(line);
+        line = num_broken_fours(line);
+        line = num_open_threes(line);
+        line = num_jump_threes(line);
+        line = num_broken_threes(line);
+        line = num_open_twos(line);
+        line = num_jump_twos(line);
+        line = num_djump_twos(line);
+    }
+
     return line;
 }
 
@@ -420,26 +456,13 @@ Shape sum_lines(Shape* shapes) {
     
     for (int i = 0; i < 4; i++) {
         shape = shapes[i];
-        sum_shape.fives += shape.fives;
-        sum_shape.longs += shape.longs;
-        sum_shape.open_fours += shape.open_fours;
-        sum_shape.broken_fours += shape.broken_fours;
-        sum_shape.open_threes += shape.open_threes;
-        sum_shape.jump_threes += shape.jump_threes;
-        sum_shape.broken_threes += shape.broken_threes;
-        sum_shape.open_twos += shape.open_twos;
-        sum_shape.broken_twos += shape.broken_twos;
+        for (int j = 0; j < STG_SIZE; j++) {
+            sum_shape.arr[j] += shape.arr[j];
+        }
     }
 
     free(shapes);
     return sum_shape;
-}
-
-Shape steply_shape(Shape shape, Shape init_shape) {
-    for (int i = 0; i < STG_SIZE; i++) {
-        shape.arr[i] -= init_shape.arr[i];
-    }
-    return shape;
 }
 
 int is_forbidden(Shape sum_shape, int color) {

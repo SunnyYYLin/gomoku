@@ -1,6 +1,12 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <time.h>
+#include <stddef.h>
+
 // Definition of the Player struct
 typedef struct {
     int type;   // Type of player: Human, Random, or AI
@@ -32,7 +38,7 @@ void init_game();
 void play_game();
 
 // Handles a player's move based on their type
-void player_drop(Player player);
+Player player_drop();
 
 // Handles human player's move input
 Position human_drop(Player player);
@@ -45,5 +51,11 @@ int game_referee(int** board, Position pos, int color);
 
 // Displays the game result
 void game_result(int turn, int referee);
+
+void generate_filename(char *buffer, size_t buffer_size);
+
+void record_step();
+
+void load_game();
 
 #endif // GAME_H

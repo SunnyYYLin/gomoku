@@ -1,7 +1,4 @@
 #include "game.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
 
 extern Player player1, player2;
 extern int **board;
@@ -11,6 +8,7 @@ static const char* playerType[3] = {"Human", "Random", "AI"};
 static Position pos_new;
 int turn;
 int referee;
+char filename[100];
 
 // Creates an empty player struct.
 Player empty_player() {
@@ -50,6 +48,7 @@ void init_game() {
     init_board(&board);
     turn = 0;
     referee = 0;
+    generate_filename(filename, sizeof(filename));
     system("chcp 65001");  // Set character encoding to UTF-8
 }
 
@@ -57,20 +56,29 @@ void init_game() {
 void play_game() {
     system("cls");
     print_board(board, pos_new, turn);
-    Player player = (turn % 2 == 0) ? player1 : player2;
-    player_drop(player);
+    Player player = player_drop();
     system("cls");
     print_board(board, pos_new, turn);
     referee = game_referee(board, pos_new, player.color);
+    record_step();
 }
 
 // Handles a player's move.
-void player_drop(Player player) {
+Player player_drop() {
     Position pos;
+    Player player;
     do {
+        UNDO:
+        player = (turn % 2 == 0) ? player1 : player2;
         switch (player.type) {
             case 0:
-                pos_new = human_drop(player);
+                pos = human_drop(player);
+                if (pos.y == 'X') {
+                    undo_board(board, pos_new);
+                    turn --;
+                    goto UNDO;
+                }
+                pos_new = pos;
                 break;
             case 1:
                 pos_new = random_drop(player);
@@ -87,6 +95,7 @@ void player_drop(Player player) {
         }
     }
     while (!drop_board(board, pos_new, player.color));
+    return player;
 }
 
 // Handles human player's move.
@@ -105,7 +114,7 @@ Position human_drop(Player player) {
     }
 
     if (colChar == 'X') {
-        return (Position){'X', -1};
+        return (Position){1, 'X'};
     }
 
     pos_new = (Position){x - 1, toupper(colChar) - 'A'};
@@ -132,14 +141,9 @@ Position random_drop(Player player) {
 
 // Determines the game result based on the current board state.
 int game_referee(int** board, Position pos, int color) {
-    undo_board(board, pos);
     Shape* shapes = enroll_lines(board, pos, color);
-    Shape init_sum_shape = sum_lines(shapes);
-    drop_board(board, pos, color);
-    shapes = enroll_lines(board, pos, color);
     Shape sum_shape = sum_lines(shapes);
-    sum_shape = steply_shape(sum_shape, init_sum_shape);
-    print_shape(sum_shape);
+    // print_shape(sum_shape);
     if (is_win(sum_shape)) {
         return -1;  // Win condition
     }
@@ -164,4 +168,45 @@ void game_result(int turn, int referee) {
     else if (referee == 1) {
         printf("Black had a forbidden move! Game over.\n");
     }
+}
+
+void generate_filename(char *buffer, size_t buffer_size) {
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+
+    strftime(buffer, buffer_size, "%H%M%S.txt", tm_info);
+}
+
+void record_step() {
+    FILE *file = fopen(filename, "a");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    fprintf(file, "%c,%d\n", pos_new.y+'A', pos_new.x+1);
+    fclose(file);
+}
+
+void load_game() {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    int x, y = 0;
+    init_board(&board);
+    referee = 0;
+    turn = 0;
+
+    while (fscanf(file, "%c,%d\n", &y, &x) == 2) {
+        pos_new.x = x - 1;
+        pos_new.y = y - 'A';
+        drop_board(board, pos_new, (turn % 2 == 0)?BLACK:WHITE);
+        turn ++;
+    }
+
+    fclose(file);
+    system("chcp 65001");  // Set character encoding to UTF-8
 }

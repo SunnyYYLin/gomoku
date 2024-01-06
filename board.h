@@ -30,6 +30,9 @@ void print_board(int** board, Position pos_new, int turn);
 // Places a piece on the board if the position is valid
 int drop_board(int** board, Position pos, int color);
 
+// Places a piece on the board without checking if the position is valid
+int drop_board_f(int** board, Position pos, int color);
+
 // Removes a piece from the board
 void undo_board(int** board, Position pos);
 
@@ -67,7 +70,6 @@ int is_pos_equal(Position pos1, Position pos2);
 Position rev_direc(Position direction);             // Reverses a given direction
 Position pos_make(int x, int y);                    // Creates a Position struct from x and y coordinates
 Position pos_move(Position pos_at, Position direction); // Moves a Position in a given direction
-Position move_to_end(int** board, Position pos_at, Position direction, int color); // Moves a Position to the end of a line of pieces
 
 // Generates a list of valid positions for a given color
 Position* valid_positions(int** board, int color, int* valid_count);
