@@ -72,19 +72,20 @@ void print_board(int** board, Position pos_new, int turn) {
     printf("Last move: %c%d\n", 'A' + pos_new.y, pos_new.x + 1);
 
     // Print each row of the board
-    for (int i = 0; i < SIZE; i++) {
+    for (int k = 0; k < SIZE; k++) {
+        int i = SIZE - k - 1; // Reverse the order of rows
         printf("%2d", i + 1); // Print row number
         for (int j = 0; j < SIZE; j++) {
             // Print the appropriate character based on the board's state
             switch (board[i][j]) {
                 case EMPTY:
                     // Special characters for the board's edges and corners
-                    if (i == 0 && j == 0) printf("┌");
-                    else if (i == 0 && j == SIZE-1) printf("┐");
-                    else if (i == SIZE-1 && j == 0) printf("└");
-                    else if (i == SIZE-1 && j == SIZE-1) printf("┘");
-                    else if (i == 0) printf("┬");
-                    else if (i == SIZE-1) printf("┴");
+                    if (i == SIZE-1 && j == 0) printf("┌");
+                    else if (i == SIZE-1 && j == SIZE-1) printf("┐");
+                    else if (i == 0 && j == 0) printf("└");
+                    else if (i == 0 && j == SIZE-1) printf("┘");
+                    else if (i == SIZE-1) printf("┬");
+                    else if (i == 0) printf("┴");
                     else if (j == 0) printf("├");
                     else if (j == SIZE-1) printf("┤");
                     else printf("┼");

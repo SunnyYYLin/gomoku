@@ -11,7 +11,6 @@
 typedef struct {
     int type;   // Type of player: Human, Random, or AI
     int color;  // Color of the player's pieces (Black or White)
-    int score;  // Score of the player
 } Player;
 
 extern Player player1, player2;  // Declaration of two players

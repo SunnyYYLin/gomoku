@@ -14,8 +14,11 @@ int minimax(int** board, Position pos, int depth, int alpha, int beta, int color
     PosScore* mostval_posSc = mostval_posScores(posSc, valid_size, &mostval_size, RATIO);
     free(posSc);
 
-    print_scores(mostval_posSc, mostval_size);
-    print_board(board, pos, (color+2)/2);
+    /*-------------TEST-------------*/
+    // printf("depth:%d\n", depth);
+    // print_board(board, pos, (color+2)/2);
+    // print_scores(mostval_posSc, mostval_size);
+    /*-------------TEST-------------*/
 
     if (depth == 0 || valid_size == 0) {
         int maxval = (valid_size == 0) ? 0 : mostval_posSc[0].score;
@@ -67,14 +70,22 @@ Position ai_drop(int** board, int color, Strategy stg) {
     PosScore* mostval_posSc = mostval_posScores(posSc, valid_size, &mostval_size, RATIO);
     free(posSc);
 
-    print_scores(mostval_posSc, mostval_size);
+    /*-------------TEST-------------*/
+    // print_scores(mostval_posSc, mostval_size);
+    /*-------------TEST-------------*/
+
     for (int i = 0; i < mostval_size; i++) {
         mostval_posSc[i].score -= (int)(DAMP*minimax(board, mostval_posSc[i].pos, get_depth(turn), -INFINITY, INFINITY, color, stg, 1));
     }
     sort_posScores(mostval_posSc, mostval_size);
     Position best_move = mostval_posSc[0].pos;
     
-    print_scores(mostval_posSc, mostval_size);
+    /*-------------TEST-------------*/
+    // print_board(board, pos_new, (color+2)/2);
+    // print_scores(mostval_posSc, mostval_size);
+    // getchar();
+    // getchar();
+    /*-------------TEST-------------*/
 
     free(mostval_posSc);
     return best_move;

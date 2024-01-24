@@ -7,11 +7,11 @@
 #include "score.h"
 #include <limits.h>
 
-#define DEPTH 3
-#define RATIO 0.8
-#define DAMP 0.4
+#define DEPTH 7
+#define DAMP 0.2
 
 extern int** board;
+extern Position pos_new;
 
 // Evaluates the score of a single line of pieces in a given direction.
 int minimax(int** board, Position pos, int depth, int alpha, int beta, int color, Strategy stg, int isMaximizing);

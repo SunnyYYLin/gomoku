@@ -5,7 +5,7 @@ extern int **board;
 extern Strategy stg1, stg2;
 static const char* colorText[3] = {"White", "Empty", "Black"};
 static const char* playerType[3] = {"Human", "Random", "AI"};
-static Position pos_new;
+Position pos_new;
 int turn;
 int referee;
 char filename[100];
@@ -15,7 +15,6 @@ Player empty_player() {
     Player player;
     player.type = 0;  // Player type: Human, Random, AI
     player.color = WHITE;  // Player color
-    player.score = 0;  // Player score
     return player;
 }
 
@@ -30,7 +29,6 @@ Player init_player(int color) {
     }
 
     player.color = color;
-    player.score = 0;
     printf("Player set.\n");
     print_player(player);
     return player;
@@ -39,8 +37,7 @@ Player init_player(int color) {
 // Prints player information.
 void print_player(Player player) {
     printf("Player type: %s\t", playerType[player.type]);
-    printf("Player color: %s\t", colorText[player.color+1]);
-    printf("Player score: %d\n", player.score);
+    printf("Player color: %s\n", colorText[player.color+1]);
 }
 
 // Initializes the game environment.
@@ -141,8 +138,8 @@ Position random_drop(Player player) {
 int game_referee(int** board, Position pos, int color) {
     Shape* shapes = enroll_lines(board, pos, color);
     Shape sum_shape = sum_lines(shapes);
-    print_shape(sum_shape);
-    getchar();
+    // print_shape(sum_shape);
+    // getchar();
     if (is_win(sum_shape)) {
         return -1;  // Win condition
     }
@@ -185,6 +182,7 @@ void record_step() {
 
     fprintf(file, "%c,%d\n", pos_new.y+'A', pos_new.x+1);
     fclose(file);
+    printf("Step recorded in %s\n", filename);
 }
 
 int load_game() {

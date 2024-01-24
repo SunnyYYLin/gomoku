@@ -9,6 +9,8 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 #define INFINITY 0xFFFF
+#define RATIO 0.7
+#define MOSTVAL_MAX 4
 
 extern int** board;
 
@@ -58,6 +60,8 @@ int evaluate_move(int** board, Position pos, int color, Strategy stg);
 
 // Evaluates scores for all valid moves on the board.
 PosScore* all_posScores(int** board, int color, Position* valid_pos, int valid_count, Strategy stg);
+
+PosScore* single_posScores(int** board, int color, Position* valid_pos, int valid_count, Strategy stg);
 
 // Sorts the array of PosScore structs (from large to small).
 void sort_posScores(PosScore* posScores, int size);

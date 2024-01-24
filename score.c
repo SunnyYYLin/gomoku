@@ -11,9 +11,9 @@ Strategy init_stg() {
     Strategy stg;
 
     // score for white
-    stg.white_score_longs = 2000;
-    stg.white_score_five = 2000;
-    stg.white_score_open_four = 1000;
+    stg.white_score_longs = 20000;
+    stg.white_score_five = 20000;
+    stg.white_score_open_four = 5000;
     stg.white_score_broken_four = 400;
     stg.white_score_open_three = 500;
     stg.white_score_jump_three = 250;
@@ -24,8 +24,8 @@ Strategy init_stg() {
 
     // score for black
     stg.black_score_longs = 0;
-    stg.black_score_five = 2000;
-    stg.black_score_open_four = 1000;
+    stg.black_score_five = 20000;
+    stg.black_score_open_four = 5000;
     stg.black_score_broken_four = 400;
     stg.black_score_open_three = 500;
     stg.black_score_jump_three = 250;
@@ -43,21 +43,38 @@ int score_shape(Shape shape, int color, Strategy stg) {
     int color_i = color_to_index(color);
     for (int i = 0; i < STG_SIZE; i++) {
         score += shape.arr[i] * stg.arr[color_i][i];
-        // if (shape.arr[i]!=0) {
-        //     printf("i=%d, shape.arr[i]=%d, stg.arr[color_i][i]=%f\n", i, shape.arr[i], stg.arr[color_i][i]);
-        // }
+    }
+    
+    if (shape.open_twos>1) {
+        score += stg.black_score_open_two;
+    }
+    if (shape.open_twos + shape.jump_twos + shape.djump_twos > 1) {
+        score += stg.black_score_jump_two;
+    }
+    if ((shape.jump_threes || shape.open_threes) && shape.broken_fours) {
+        score += stg.black_score_open_three;
+    }
+    if (shape.broken_threes+ shape.open_threes + shape.jump_threes > 1) {
+        score += stg.black_score_broken_three;
+    }
+    if (color == WHITE) {
+        if (shape.open_threes + shape.jump_threes > 1) {
+            score += stg.white_score_open_three;
+        }
+        if (shape.broken_fours > 1) {
+            score += stg.white_score_broken_four;
+        }
     }
     return score;
 }
 
 // Evaluates the score of a single move.
 int evaluate_move(int** board, Position pos, int color, Strategy stg) {
-    int** board_copy = copy_board(board);
-    drop_board(board_copy, pos, color);
+    drop_board(board, pos, color);
 
     int color_i = color_to_index(color);
     int score = 0;
-    Shape* shapes = enroll_lines(board_copy, pos, color);
+    Shape* shapes = enroll_lines(board, pos, color);
     Shape shape = sum_lines(shapes);
     if (is_win(shape)) {
         score = 10*stg.arr[color_i][1]; // score_fives
@@ -69,7 +86,7 @@ int evaluate_move(int** board, Position pos, int color, Strategy stg) {
         score = score_shape(shape, color, stg);
     }
 
-    free_board(board_copy);
+    undo_board(board, pos);
     return score;
 }
 
@@ -79,13 +96,26 @@ PosScore* all_posScores(int** board, int color, Position* valid_pos, int valid_c
     for (int i = 0; i < valid_count; i++) {
         int self_score = evaluate_move(board, valid_pos[i], color, stg);
         int opponent_score = evaluate_move(board, valid_pos[i], -color, stg);
-        int score = 0.9*self_score + opponent_score;
+        int score = (opponent_score <= -10*stg.white_score_five)?self_score:(self_score+opponent_score);
         pos_scores[i] = (PosScore){valid_pos[i], score};
         // printf("score[%d]:%f\n", i, score);
     }
 
     return pos_scores;
 }
+
+PosScore* single_posScores(int** board, int color, Position* valid_pos, int valid_count, Strategy stg) {
+    PosScore* pos_scores = (PosScore*)malloc(sizeof(PosScore) * valid_count);
+    for (int i = 0; i < valid_count; i++) {
+        int self_score = evaluate_move(board, valid_pos[i], color, stg);
+        int score = self_score;
+        pos_scores[i] = (PosScore){valid_pos[i], score};
+        // printf("score[%d]:%f\n", i, score);
+    }
+
+    return pos_scores;
+}
+
 
 // Sorts the array of PosScore structs (from large to small).
 void sort_posScores(PosScore* posScores, int size) {
@@ -103,7 +133,7 @@ PosScore* mostval_posScores(PosScore* posScores, int size, int* mostval_size, do
     int count = 0;
     PosScore* buff_posScores = (PosScore*)malloc(sizeof(PosScore) * size);
     int threshold = (int)(ratio*posScores[0].score);
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size && count < MOSTVAL_MAX; i++) {
         if (posScores[i].score>=threshold) {
             buff_posScores[count] = posScores[i];
             count++;
@@ -139,6 +169,7 @@ void print_scores(PosScore* pos_scores, int valid_count) {
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 // Compares two PosScore structs.

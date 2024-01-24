@@ -49,8 +49,13 @@ int main() {
     // Play the game until there are no more moves or a referee decision is made
     for (/*turn is initialized before*/ ; turn < SIZE * SIZE && referee == 0; turn++) {
         play_game();  // Play a single turn of the game
-        if (referee != 0) {
+        if (referee == -1) {
             break;  // Exit the loop if the game is over
+        }
+        else if (referee == 1) {
+            printf("Forbidding rule triggered!\n");
+            getchar();  // Read the newline character
+            getchar();  // Read a single character
         }
     }
 
