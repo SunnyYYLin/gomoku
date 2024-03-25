@@ -294,3 +294,25 @@ Position* valid_positions(int** board, int color, int* count) {
 
     return valid_pos;
 }
+
+Position* get_empty_positions(int** board, int* empty_count) {
+    *empty_count = 0;
+    Position empty_pos_temp[SIZE*SIZE];
+
+    // Iterate through the board and add empty positions to the array
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            Position pos = {i, j};
+            if (is_empty(board, pos)) {
+                empty_pos_temp[*empty_count] = pos;
+                (*empty_count) ++;
+            }
+        }
+    }
+
+    // Resize the array to match the actual number of empty positions
+    Position* empty_pos = malloc(sizeof(Position)*(*empty_count));
+    memcpy(empty_pos, empty_pos_temp, sizeof(Position)*(*empty_count));
+
+    return empty_pos;
+}

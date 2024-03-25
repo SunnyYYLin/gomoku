@@ -74,4 +74,6 @@ Position pos_move(Position pos_at, Position direction); // Moves a Position in a
 // Generates a list of valid positions for a given color
 Position* valid_positions(int** board, int color, int* valid_count);
 
+Position* get_empty_positions(int** board, int* empty_count);
+
 #endif // BOARD_H

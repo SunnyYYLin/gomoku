@@ -3,10 +3,8 @@
 
 #include "board.h"
 
-#define SEG_END -2 // The end mark of line.seg[]
-
-#ifndef STG_SIZE
-#define STG_SIZE 10
+#ifndef SHAPE_SIZE
+#define SHAPE_SIZE 6
 #endif
 
 #ifndef SEG_GAP
@@ -20,18 +18,14 @@
 typedef struct {
     union {
         struct {
-            int longs;          // Number of longs (more than five consecutive pieces)
-            int fives;          // Number of fives (five consecutive pieces)
-            int open_fours;     // Number of open fours (four consecutive pieces with open ends)
-            int broken_fours;   // Number of broken fours (four consecutive pieces but not open on both ends)
-            int open_threes;    // Number of open threes (three consecutive pieces with open ends)
-            int jump_threes;    // Number of jump threes (three unconsecutive pieces with open ends)
-            int broken_threes;  // Number of broken threes (three pieces but one end blocked by opponent)
-            int open_twos;      // Number of open twos (two consecutive pieces with open ends)
-            int jump_twos;      // Number of jump twos (two unconsecutive pieces with open ends)
-            int djump_twos;     // Number of double jump twos (two distantly unconsecutive pieces with both ends open)
+            int longs;
+            int fives;
+            int open_fours;
+            int broken_fours;
+            int open_threes;
+            int jump_threes;
         };
-        int arr[STG_SIZE];           // Array of shape counts
+        int arr[SHAPE_SIZE];
     };
 } Shape;
 
@@ -40,7 +34,6 @@ typedef struct {
     int len;            // Length of the line
     int segs[SIZE];     // Segments in the line
     Shape shape;        // The shape formed by the line
-    int is_open;
 } Line;
 
 // Function declarations
@@ -65,10 +58,7 @@ Line num_fives_and_longs(Line line);
 Line num_open_fours(Line line);
 Line num_broken_fours(Line line);
 Line num_open_threes(Line line);
-Line num_broken_threes(Line line);
-Line num_open_twos(Line line);
-Line num_jump_twos(Line line);
-Line num_djump_twos(Line line);
+Line num_jump_threes(Line line);
 
 // Determine the shape of a line
 Line line_shape(Line line);
